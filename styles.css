@@ -460,6 +460,29 @@ body[data-viewer-role="client"] #about-page-menu {
   background: var(--panel-soft);
 }
 
+.composer-media-remove {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(5, 5, 5, 0.78);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.composer-media-remove:hover {
+  background: rgba(5, 5, 5, 0.92);
+}
+
 .composer-media-preview.is-single .composer-media-thumb {
   aspect-ratio: 4 / 3;
 }

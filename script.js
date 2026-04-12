@@ -1738,6 +1738,7 @@ const renderComposerPreview = () => {
     .map(
       (item, index) => `
         <div class="composer-media-thumb" data-composer-thumb="${index}">
+          <button class="composer-media-remove" type="button" data-remove-composer-media="${index}" aria-label="미디어 삭제">×</button>
           ${
             item.type === "video"
               ? `<video src="${item.src}" ${item.poster ? `poster="${item.poster}"` : ""} controls playsinline preload="metadata"></video>`
@@ -1747,6 +1748,13 @@ const renderComposerPreview = () => {
       `
     )
     .join("");
+};
+
+const removeComposerMediaAt = (index) => {
+  const target = composerMediaItems[index];
+  if (target) revokeMediaPreviewUrls([target]);
+  composerMediaItems = composerMediaItems.filter((_, itemIndex) => itemIndex !== index);
+  renderComposerPreview();
 };
 
 const renderMediaPreviewMarkup = (mediaItems, prefix) => {
@@ -1765,6 +1773,7 @@ const renderMediaPreviewMarkup = (mediaItems, prefix) => {
         .map(
           (item, index) => `
             <div class="composer-media-thumb" data-edit-thumb="${prefix}-${index}">
+              <button class="composer-media-remove" type="button" data-remove-edit-media="${prefix}-${index}" aria-label="미디어 삭제">×</button>
               ${
                 item.type === "video"
                   ? `<video src="${item.src}" ${item.poster ? `poster="${item.poster}"` : ""} controls playsinline preload="metadata"></video>`
@@ -1811,6 +1820,8 @@ const readMediaItem = (file) =>
 
     const video = document.createElement("video");
     video.preload = "metadata";
+    video.muted = true;
+    video.playsInline = true;
     video.onloadedmetadata = () => {
       const width = Number(video.videoWidth || 0);
       const height = Number(video.videoHeight || 0);
@@ -1839,27 +1850,44 @@ const readMediaItem = (file) =>
         }
       };
 
-      const seekTarget = Number.isFinite(video.duration) && video.duration > 0.2 ? 0.1 : 0;
-      const onSeeked = () => {
-        video.removeEventListener("seeked", onSeeked);
-        capturePoster();
+      let settled = false;
+      const finish = (poster = "") => {
+        if (settled) return;
+        settled = true;
+        complete(poster);
       };
 
-      video.addEventListener("seeked", onSeeked, { once: true });
-      try {
-        video.currentTime = seekTarget;
-        if (seekTarget === 0) {
-          window.setTimeout(() => {
-            if (!video.seeking) capturePoster();
-          }, 50);
+      const captureAndFinish = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = width || 1;
+          canvas.height = height || 1;
+          const context = canvas.getContext("2d");
+          if (!context) {
+            finish("");
+            return;
+          }
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          finish(canvas.toDataURL("image/jpeg", 0.82));
+        } catch (error) {
+          finish("");
         }
-      } catch (error) {
-        video.removeEventListener("seeked", onSeeked);
-        capturePoster();
-      }
+      };
+
+      const onLoadedData = () => {
+        video.removeEventListener("loadeddata", onLoadedData);
+        window.setTimeout(captureAndFinish, 60);
+      };
+
+      video.addEventListener("loadeddata", onLoadedData, { once: true });
+
+      window.setTimeout(() => {
+        if (!settled) captureAndFinish();
+      }, 800);
     };
     video.onerror = () => finalize(previewUrl);
     video.src = previewUrl;
+    video.load();
   });
 
 const updateComposerMeta = () => {
@@ -3042,6 +3070,36 @@ composerMediaInput?.addEventListener("change", () => {
     composerMediaInput.value = "";
     composerMediaInput.accept = "image/*,video/*";
   });
+});
+
+composerMediaPreview?.addEventListener("click", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  const button = target.closest("[data-remove-composer-media]");
+  if (!(button instanceof HTMLButtonElement)) return;
+  const index = Number(button.dataset.removeComposerMedia);
+  if (Number.isNaN(index)) return;
+  removeComposerMediaAt(index);
+});
+
+feed?.addEventListener("click", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  const button = target.closest("[data-remove-edit-media]");
+  if (!(button instanceof HTMLButtonElement)) return;
+  const rawValue = button.dataset.removeEditMedia || "";
+  const lastDashIndex = rawValue.lastIndexOf("-");
+  const id = lastDashIndex > -1 ? rawValue.slice(0, lastDashIndex) : "";
+  const indexValue = lastDashIndex > -1 ? rawValue.slice(lastDashIndex + 1) : "";
+  const index = Number(indexValue);
+  if (!id || Number.isNaN(index)) return;
+  const draft = ensureEditDraft(id);
+  if (!draft) return;
+  const item = draft.mediaItems[index];
+  if (item) revokeMediaPreviewUrls([item]);
+  draft.mediaItems = draft.mediaItems.filter((_, itemIndex) => itemIndex !== index);
+  const card = button.closest(".tweet-card");
+  if (card) updateEditDraftUI(card, id);
 });
 
 composerTextarea?.addEventListener("input", () => {
