@@ -587,6 +587,11 @@ body[data-viewer-role="client"] #about-page-menu {
   font-weight: 800;
 }
 
+.composer-submit:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
 .emoji-picker {
   position: absolute;
   left: 0;

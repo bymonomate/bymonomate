@@ -432,6 +432,7 @@ let selectedConversationId = "";
 const feed = document.querySelector("#feed");
 const composer = document.querySelector("#tweet-composer");
 const composerTextarea = composer?.querySelector('textarea[name="content"]');
+const composerSubmitButton = composer?.querySelector('.composer-submit');
 const composerMediaInput = document.querySelector("#composer-media-input");
 const composerMediaPreview = document.querySelector("#composer-media-preview");
 const composerScheduleInput = document.querySelector("#composer-schedule-input");
@@ -1748,6 +1749,14 @@ const updateComposerMeta = () => {
   }
 };
 
+const updateComposerSubmitState = () => {
+  if (!(composerSubmitButton instanceof HTMLButtonElement)) return;
+  const hasContent = String(composerTextarea?.value || "").trim().length > 0;
+  const canSubmit = isAdminViewer() && hasContent;
+  composerSubmitButton.disabled = !canSubmit;
+  composerSubmitButton.setAttribute("aria-disabled", canSubmit ? "false" : "true");
+};
+
 const ensureEditDraft = (postId) => {
   if (editDrafts[postId]) return editDrafts[postId];
   const post = config.posts.find((item) => item.id === postId);
@@ -2597,6 +2606,7 @@ const renderConfig = () => {
   setActiveSettingsPanel(activeSettingsPanel);
   filterSettingsPanels();
   updateComposerMeta();
+  updateComposerSubmitState();
   if (brandLogoOpen instanceof HTMLButtonElement) {
     brandLogoOpen.disabled = !isAdminViewer();
   }
@@ -2873,6 +2883,10 @@ composerMediaInput?.addEventListener("change", () => {
   });
 });
 
+composerTextarea?.addEventListener("input", () => {
+  updateComposerSubmitState();
+});
+
 composer?.addEventListener("submit", (event) => {
   event.preventDefault();
   if (!isAdminViewer()) return;
@@ -2907,6 +2921,7 @@ composer?.addEventListener("submit", (event) => {
   closeEmojiPicker();
   renderComposerPreview();
   updateComposerMeta();
+  updateComposerSubmitState();
   renderPosts();
   renderNotifications();
 });
