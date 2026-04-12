@@ -5,6 +5,10 @@ const API_SITE_STATE_ENDPOINT = "/api/site-state";
 const API_ADMIN_AUTH_ENDPOINT = "/api/admin-auth";
 const API_INQUIRIES_ENDPOINT = "/api/inquiries";
 const REMOTE_SYNC_INTERVAL = 8000;
+const SUPABASE_PUBLIC_URL = "https://dhmufzkbgjexlgmrpmih.supabase.co";
+const SUPABASE_PUBLIC_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRobXVmemtiZ2pleGxnbXJwbWloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5MTEzNjEsImV4cCI6MjA5MTQ4NzM2MX0.xw1US9BvLe36eigLPn8Gr2YDY59kXMgsTrvnb05otXw";
+const POST_MEDIA_BUCKET = "post-media";
 
 const DEFAULT_POSTS = [
   {
@@ -310,6 +314,109 @@ const normalizeMediaItems = (post) => {
       aspectRatio: 0,
     },
   ];
+};
+
+const isBlobMediaSource = (value) => String(value || "").startsWith("blob:");
+
+const revokeMediaPreviewUrls = (mediaItems = []) => {
+  mediaItems.forEach((item) => {
+    if (!item?.file || !isBlobMediaSource(item.src)) return;
+    try {
+      URL.revokeObjectURL(item.src);
+    } catch (error) {
+      void error;
+    }
+  });
+};
+
+const sanitizeStorageSegment = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || "file";
+
+const getFileExtension = (file) => {
+  const fileName = String(file?.name || "");
+  const lastDotIndex = fileName.lastIndexOf(".");
+  if (lastDotIndex > -1 && lastDotIndex < fileName.length - 1) {
+    return sanitizeStorageSegment(fileName.slice(lastDotIndex + 1));
+  }
+  const mimeType = String(file?.type || "");
+  return sanitizeStorageSegment(mimeType.split("/")[1] || "bin");
+};
+
+const encodeStoragePath = (path) =>
+  String(path || "")
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
+const buildStoragePublicUrl = (bucket, path) =>
+  `${SUPABASE_PUBLIC_URL}/storage/v1/object/public/${bucket}/${encodeStoragePath(path)}`;
+
+const buildPostMediaPath = (file, type = "image") => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).slice(2, 10);
+  const extension = getFileExtension(file);
+  const safeName = sanitizeStorageSegment(file?.name?.replace(/\.[^.]+$/, "") || type);
+  return `${type}/${year}/${month}/${timestamp}-${random}-${safeName}.${extension}`;
+};
+
+const uploadFileToSupabaseStorage = async (file, type = "image") => {
+  const path = buildPostMediaPath(file, type);
+  const response = await fetch(`${SUPABASE_PUBLIC_URL}/storage/v1/object/${POST_MEDIA_BUCKET}/${encodeStoragePath(path)}`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_PUBLIC_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_PUBLIC_ANON_KEY}`,
+      "Content-Type": file.type || "application/octet-stream",
+      "x-upsert": "false",
+    },
+    body: file,
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(detail || `Storage upload failed: ${response.status}`);
+  }
+
+  return buildStoragePublicUrl(POST_MEDIA_BUCKET, path);
+};
+
+const uploadPendingMediaItems = async (mediaItems = []) => {
+  const nextItems = [];
+
+  for (const item of mediaItems) {
+    if (!item) continue;
+
+    if (!item.file) {
+      nextItems.push({
+        src: String(item.src || ""),
+        type: String(item.type || "image"),
+        width: Number(item.width || 0),
+        height: Number(item.height || 0),
+        aspectRatio: Number(item.aspectRatio || 0),
+      });
+      continue;
+    }
+
+    const remoteSrc = await uploadFileToSupabaseStorage(item.file, item.type);
+    nextItems.push({
+      src: remoteSrc,
+      type: String(item.type || "image"),
+      width: Number(item.width || 0),
+      height: Number(item.height || 0),
+      aspectRatio: Number(item.aspectRatio || 0),
+    });
+  }
+
+  revokeMediaPreviewUrls(mediaItems);
+  return nextItems;
 };
 
 const normalizePost = (post, index) => ({
@@ -1669,8 +1776,8 @@ const renderMediaPreviewMarkup = (mediaItems, prefix) => {
 
 const readMediaItem = (file) =>
   new Promise((resolve) => {
-    const reader = new FileReader();
     const type = file.type.startsWith("video/") ? "video" : "image";
+    const previewUrl = URL.createObjectURL(file);
     const finalize = (src, meta = {}) =>
       resolve({
         src: String(src || ""),
@@ -1678,47 +1785,38 @@ const readMediaItem = (file) =>
         width: Number(meta.width || 0),
         height: Number(meta.height || 0),
         aspectRatio: Number(meta.aspectRatio || 0),
+        file,
       });
 
-    reader.onload = () => {
-      const src = String(reader.result || "");
-      if (!src) {
-        finalize("");
-        return;
-      }
-
-      if (type === "image") {
-        const img = new Image();
-        img.onload = () => {
-          const width = Number(img.naturalWidth || 0);
-          const height = Number(img.naturalHeight || 0);
-          finalize(src, {
-            width,
-            height,
-            aspectRatio: width && height ? width / height : 0,
-          });
-        };
-        img.onerror = () => finalize(src);
-        img.src = src;
-        return;
-      }
-
-      const video = document.createElement("video");
-      video.preload = "metadata";
-      video.onloadedmetadata = () => {
-        const width = Number(video.videoWidth || 0);
-        const height = Number(video.videoHeight || 0);
-        finalize(src, {
+    if (type === "image") {
+      const img = new Image();
+      img.onload = () => {
+        const width = Number(img.naturalWidth || 0);
+        const height = Number(img.naturalHeight || 0);
+        finalize(previewUrl, {
           width,
           height,
           aspectRatio: width && height ? width / height : 0,
         });
       };
-      video.onerror = () => finalize(src);
-      video.src = src;
-    };
+      img.onerror = () => finalize(previewUrl);
+      img.src = previewUrl;
+      return;
+    }
 
-    reader.readAsDataURL(file);
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.onloadedmetadata = () => {
+      const width = Number(video.videoWidth || 0);
+      const height = Number(video.videoHeight || 0);
+      finalize(previewUrl, {
+        width,
+        height,
+        aspectRatio: width && height ? width / height : 0,
+      });
+    };
+    video.onerror = () => finalize(previewUrl);
+    video.src = previewUrl;
   });
 
 const updateComposerMeta = () => {
@@ -2269,7 +2367,10 @@ const bindPostActions = () => {
     button.addEventListener("click", () => {
       const card = button.closest(".tweet-card");
       const id = button.dataset.editCancel;
-      if (id) delete editDrafts[id];
+      if (id && editDrafts[id]) {
+        revokeMediaPreviewUrls(editDrafts[id].mediaItems);
+        delete editDrafts[id];
+      }
       card?.classList.remove("is-editing");
     });
   });
@@ -2284,21 +2385,36 @@ const bindPostActions = () => {
   });
 
   document.querySelectorAll("[data-edit-save]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const id = button.dataset.editSave;
       const card = button.closest(".tweet-card");
       const textarea = card?.querySelector(`[data-inline-content="${id}"]`);
       const nextContent = textarea instanceof HTMLTextAreaElement ? textarea.value.trim() : "";
       if (!nextContent) return;
       const draft = ensureEditDraft(id);
+      if (!draft) return;
+      const originalLabel = button.textContent || "저장";
+      button.textContent = "업로드 중...";
+      button.disabled = true;
+      let uploadedMediaItems = draft.mediaItems;
+      try {
+        uploadedMediaItems = await uploadPendingMediaItems(draft.mediaItems);
+      } catch (error) {
+        console.error("Edit media upload failed", error);
+        window.alert("미디어 업로드에 실패했습니다. Supabase Storage 버킷과 업로드 정책을 확인해주세요.");
+        button.textContent = originalLabel;
+        button.disabled = false;
+        return;
+      }
       draft.content = nextContent;
+      draft.mediaItems = uploadedMediaItems;
       config.posts = config.posts.map((post) =>
         post.id === id
           ? {
               ...post,
               content: draft.content,
               visibility: draft.visibility,
-              mediaItems: draft.mediaItems,
+              mediaItems: uploadedMediaItems,
               date: draft.scheduledAt ? draft.scheduledAt.slice(0, 10) : post.date,
             }
           : post
@@ -2306,6 +2422,8 @@ const bindPostActions = () => {
       delete editDrafts[id];
       saveConfig();
       renderPosts();
+      button.textContent = originalLabel;
+      button.disabled = false;
     });
   });
 
@@ -2887,7 +3005,7 @@ composerTextarea?.addEventListener("input", () => {
   updateComposerSubmitState();
 });
 
-composer?.addEventListener("submit", (event) => {
+composer?.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!isAdminViewer()) return;
   const formData = new FormData(composer);
@@ -2898,6 +3016,24 @@ composer?.addEventListener("submit", (event) => {
   }
 
   const isPrivate = privacyButton?.classList.contains("is-active");
+  const originalSubmitLabel = composerSubmitButton?.textContent || "게시하기";
+  if (composerSubmitButton) {
+    composerSubmitButton.textContent = "업로드 중...";
+    composerSubmitButton.disabled = true;
+  }
+
+  let uploadedMediaItems = composerMediaItems;
+  try {
+    uploadedMediaItems = await uploadPendingMediaItems(composerMediaItems);
+  } catch (error) {
+    console.error("Composer media upload failed", error);
+    window.alert("미디어 업로드에 실패했습니다. Supabase Storage 버킷과 업로드 정책을 확인해주세요.");
+    if (composerSubmitButton) {
+      composerSubmitButton.textContent = originalSubmitLabel;
+      composerSubmitButton.disabled = false;
+    }
+    return;
+  }
 
   config.posts.unshift(
     normalizePost(
@@ -2905,7 +3041,7 @@ composer?.addEventListener("submit", (event) => {
         id: `post-${Date.now()}`,
         date: String(formData.get("scheduled_at") || "").slice(0, 10) || new Date().toISOString().slice(0, 10),
         content,
-        mediaItems: composerMediaItems,
+        mediaItems: uploadedMediaItems,
         visibility: isPrivate ? "private" : "public",
         stats: { comments: 0, shares: 0, likes: 0 },
       },
@@ -2927,6 +3063,10 @@ composer?.addEventListener("submit", (event) => {
   updateComposerSubmitState();
   renderPosts();
   renderNotifications();
+  if (composerSubmitButton) {
+    composerSubmitButton.textContent = originalSubmitLabel;
+    composerSubmitButton.disabled = false;
+  }
 });
 
 searchViewInput?.addEventListener("input", () => {

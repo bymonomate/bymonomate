@@ -34,3 +34,26 @@ create index if not exists inquiry_messages_inquiry_id_idx on public.inquiry_mes
 
 alter table public.inquiries disable row level security;
 alter table public.inquiry_messages disable row level security;
+
+insert into storage.buckets (id, name, public)
+values ('post-media', 'post-media', true)
+on conflict (id) do update
+set public = excluded.public;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'Allow public uploads to post-media'
+  ) then
+    create policy "Allow public uploads to post-media"
+    on storage.objects
+    for insert
+    to public
+    with check (bucket_id = 'post-media');
+  end if;
+end
+$$;
