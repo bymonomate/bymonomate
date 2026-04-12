@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Monomate | Social Portfolio</title>
+    <meta
+      name="description"
+      content="트위터 스타일로 구성한 Monomate 포트폴리오 사이트"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar-left">
+        <button class="brand-mark brand-mark-button" type="button" id="brand-logo-open" aria-label="로고 이미지 수정">
+          <span class="brand-mark-image" data-image-key="brand_logo">
+            <span class="brand-mark-fallback" data-text-key="profile_avatar_fallback">M</span>
+          </span>
+        </button>
+
+        <nav class="side-nav" aria-label="주요 메뉴">
+          <a class="side-nav-link is-active" href="#top" data-view="home" data-nav-tooltip="홈" aria-label="홈">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.75 10.5 12 5l7.25 5.5v8a.75.75 0 0 1-.75.75H14v-5h-4v5H5.5a.75.75 0 0 1-.75-.75v-8Z"/></svg>
+          </a>
+          <a class="side-nav-link" href="#about" data-view="about" data-nav-tooltip="About" aria-label="About">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a3.25 3.25 0 1 0-3.25-3.25A3.25 3.25 0 0 0 12 12Z"/><path d="M5.75 18.25a6.25 6.25 0 0 1 12.5 0"/></svg>
+          </a>
+          <a class="side-nav-link" href="#search" data-view="search" data-nav-tooltip="검색" aria-label="검색">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 5a5.5 5.5 0 1 0 5.5 5.5A5.5 5.5 0 0 0 10.5 5Z"/><path d="m14.75 14.75 4.25 4.25"/></svg>
+          </a>
+          <a class="side-nav-link" href="#notifications" data-view="notifications" data-nav-tooltip="알림" aria-label="알림">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5a4.5 4.5 0 0 0-4.5 4.5v2.25c0 1.06-.34 2.09-.98 2.94L5.5 16.1a.75.75 0 0 0 .6 1.2h11.8a.75.75 0 0 0 .6-1.2l-1.02-1.41a5.2 5.2 0 0 1-.98-2.94V9.5A4.5 4.5 0 0 0 12 5Z"/><path d="M10.25 18.25a1.75 1.75 0 0 0 3.5 0"/></svg>
+          </a>
+          <a class="side-nav-link" href="#messages" data-view="messages" data-nav-tooltip="메시지" aria-label="메시지">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 6h13a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H9l-3.5 2.5V7a1 1 0 0 1 1-1Z"/></svg>
+          </a>
+          <a class="side-nav-link" href="#settings" data-view="settings" data-nav-tooltip="설정" aria-label="설정">
+            <svg viewBox="-0.5 0 25 25" aria-hidden="true"><path d="M18.8887 10.25C18.5395 10.2462 18.1974 10.151 17.8964 9.97387C17.5954 9.79677 17.3461 9.54393 17.1731 9.24053C17.0002 8.93714 16.9097 8.59372 16.9107 8.2445C16.9117 7.89528 17.0041 7.55241 17.1787 7.24999L17.2987 7.03997C17.4297 6.81781 17.5133 6.57097 17.5443 6.31493C17.5753 6.0589 17.553 5.79924 17.4788 5.55224C17.4046 5.30524 17.2801 5.07626 17.1132 4.87969C16.9462 4.68312 16.7404 4.52317 16.5087 4.40996C16.0227 4.17652 15.467 4.13332 14.9507 4.28875C14.4345 4.44418 13.995 4.78704 13.7187 5.24999C13.5404 5.54389 13.2894 5.78686 12.9899 5.9555C12.6903 6.12413 12.3524 6.21276 12.0087 6.21276C11.665 6.21276 11.327 6.12413 11.0275 5.9555C10.728 5.78686 10.4769 5.54389 10.2987 5.24999C10.0224 4.78704 9.58291 4.44418 9.06665 4.28875C8.5504 4.13332 7.99469 4.17652 7.5087 4.40996C7.27697 4.52317 7.07116 4.68312 6.90421 4.87969C6.73726 5.07626 6.61277 5.30524 6.53858 5.55224C6.46438 5.79924 6.44209 6.0589 6.47309 6.31493C6.50408 6.57097 6.5877 6.81781 6.71869 7.03997L6.83869 7.24999C7.01332 7.55241 7.10571 7.89528 7.10669 8.2445C7.10767 8.59372 7.01721 8.93714 6.84427 9.24053C6.67134 9.54393 6.42196 9.79677 6.12097 9.97387C5.81999 10.151 5.4779 10.2462 5.12869 10.25C4.64217 10.238 4.16698 10.3979 3.78659 10.7015C3.40621 11.005 3.14493 11.4329 3.04868 11.91C2.99868 12.1996 3.01314 12.4967 3.09101 12.7801C3.16887 13.0635 3.30826 13.3263 3.49921 13.5497C3.69016 13.7731 3.92799 13.9516 4.1958 14.0727C4.46362 14.1937 4.75481 14.2543 5.04868 14.25H5.1687C5.5179 14.2538 5.86 14.349 6.16098 14.5261C6.46196 14.7032 6.71131 14.9561 6.88425 15.2595C7.05718 15.5628 7.14768 15.9063 7.1467 16.2555C7.14572 16.6047 7.05333 16.9476 6.87869 17.25L6.82868 17.33C6.56685 17.7935 6.4956 18.3407 6.62998 18.8558C6.76435 19.3709 7.0938 19.8135 7.54868 20.09C8.00218 20.351 8.53992 20.4239 9.04654 20.293C9.55316 20.1622 9.98834 19.838 10.2587 19.39L10.2787 19.25C10.457 18.9561 10.708 18.7131 11.0075 18.5445C11.307 18.3759 11.6449 18.2872 11.9887 18.2872C12.3324 18.2872 12.6704 18.3759 12.9699 18.5445C13.2694 18.7131 13.5204 18.9561 13.6987 19.25L13.7687 19.39C14.0391 19.8407 14.4761 20.1668 14.9851 20.2978C15.4942 20.4288 16.0343 20.3542 16.4887 20.09C16.9367 19.8197 17.2609 19.3845 17.3917 18.8779C17.5226 18.3712 17.4497 17.8335 17.1887 17.38L17.1287 17.27C16.9541 16.9676 16.8617 16.6247 16.8607 16.2754C16.8597 15.9262 16.9502 15.5829 17.1231 15.2795C17.296 14.9761 17.5454 14.7232 17.8464 14.5461C18.1474 14.369 18.4895 14.2738 18.8387 14.27H18.9587C19.2525 14.2743 19.5438 14.2138 19.8116 14.0927C20.0794 13.9717 20.3172 13.793 20.5082 13.5696C20.6991 13.3462 20.8385 13.0835 20.9164 12.8001C20.9942 12.5167 21.0087 12.2196 20.9587 11.93C20.8669 11.451 20.6088 11.0198 20.2301 10.7124C19.8514 10.405 19.3763 10.2413 18.8887 10.25Z"/><path d="M12 14.79C13.3807 14.79 14.5 13.6707 14.5 12.29C14.5 10.9093 13.3807 9.78998 12 9.78998C10.6193 9.78998 9.5 10.9093 9.5 12.29C9.5 13.6707 10.6193 14.79 12 14.79Z"/></svg>
+          </a>
+        </nav>
+
+        <div class="viewer-mode-switch" id="viewer-mode-switch" aria-label="보기 모드 전환">
+          <button class="viewer-mode-button" type="button" data-viewer-role="admin" aria-pressed="false">관리자</button>
+        </div>
+      </aside>
+
+      <main class="timeline" id="top">
+        <div class="app-view is-active" data-view-panel="home">
+        <header class="timeline-header">
+          <button class="timeline-tab is-active" type="button" data-filter="latest">최신</button>
+          <button class="timeline-tab" type="button" data-filter="all">전체</button>
+        </header>
+
+        <section class="composer-card reveal" id="composer">
+          <div class="avatar avatar-large" data-image-key="brand_logo">
+            <span class="avatar-fallback" data-text-key="profile_avatar_fallback">M</span>
+          </div>
+          <form class="tweet-composer" id="tweet-composer">
+            <p class="composer-handle">
+              <strong data-text-key="profile_name">Monomate</strong>
+              <span data-text-key="profile_handle">@monomate</span>
+            </p>
+            <textarea
+              name="content"
+              placeholder="무슨 일이 일어나고 있나요? 프로젝트 이야기와 #해시태그를 함께 적어보세요."
+              required
+            ></textarea>
+            <input id="composer-media-input" name="media_file" type="file" accept="image/*,video/*" multiple hidden />
+            <input id="composer-schedule-input" name="scheduled_at" type="hidden" />
+            <div class="composer-media-preview" id="composer-media-preview" hidden></div>
+            <div class="composer-meta-row" id="composer-meta-row" hidden>
+              <span class="composer-meta-chip" id="composer-schedule-chip" hidden></span>
+              <span class="composer-meta-chip" id="composer-privacy-chip" hidden>비공개 게시</span>
+            </div>
+            <div class="composer-toolbar">
+              <div class="composer-icons">
+                <button class="composer-icon-button" type="button" data-composer-action="media" data-tooltip="이미지 또는 영상" aria-label="이미지 또는 영상">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5A2.5 2.5 0 0 1 5.5 3h13A2.5 2.5 0 0 1 21 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 18.5v-13Zm2.5-.5a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-13a.5.5 0 0 0-.5-.5h-13Zm2.75 11.5 2.35-2.82a1 1 0 0 1 1.54.02l1.65 2.02 2.58-3.1a1 1 0 0 1 1.54.03l1.09 1.35V18H6v-1.5l2.25 0ZM8 8.75A1.75 1.75 0 1 1 11.5 8.75 1.75 1.75 0 0 1 8 8.75Z"/></svg>
+                </button>
+                <button class="composer-icon-button" type="button" data-composer-action="gif" data-tooltip="GIF" aria-label="GIF">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13Zm3.25 2.5h3.25v1.5H8.75v1.25H10v1.5H8.75v1.25h1.75V15H7.25V8Zm4.5 0h1.5v7h-1.5V8Zm2.75 0h4v1.5h-2.5v1.25h2v1.5h-2V15h-1.5V8Z"/></svg>
+                </button>
+                <button class="composer-icon-button" type="button" data-composer-action="emoji" data-tooltip="이모티콘" aria-label="이모티콘">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.75A9.25 9.25 0 1 1 2.75 12 9.26 9.26 0 0 1 12 2.75Zm0 2A7.25 7.25 0 1 0 19.25 12 7.26 7.26 0 0 0 12 4.75Zm-2.75 5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm5.5 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm-6.04 4.7h6.58a3.75 3.75 0 0 1-6.58 0Z"/></svg>
+                </button>
+                <button class="composer-icon-button" type="button" data-composer-action="schedule" data-tooltip="예약하기" aria-label="예약하기">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.75 3a1 1 0 0 1 1 1v1h6.5V4a1 1 0 1 1 2 0v1h.25A2.5 2.5 0 0 1 20 7.5v10A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5v-10A2.5 2.5 0 0 1 6.5 5h.25V4a1 1 0 0 1 1-1Zm9.75 7h-11v7.5a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5V10Zm-11-2h11V7.5a.5.5 0 0 0-.5-.5h-.25v1a1 1 0 1 1-2 0V7h-6.5v1a1 1 0 1 1-2 0V7H6.5a.5.5 0 0 0-.5.5V8Zm5.75 2.75a1 1 0 0 1 1 1v1.84l1.3.75a1 1 0 1 1-1 1.73l-1.8-1.04a1 1 0 0 1-.5-.86v-2.42a1 1 0 0 1 1-1Z"/></svg>
+                </button>
+                <button class="composer-icon-button" type="button" data-composer-action="privacy" data-tooltip="전체 공개" aria-label="전체 공개">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c4.97 0 9 4.03 9 9 0 1.97-.63 3.8-1.7 5.29l1.4 1.4-1.41 1.41-15-15L5.7 3.7l2.05 2.05A8.94 8.94 0 0 1 12 3Zm-6.88 4.54 2.22 2.22A3.99 3.99 0 0 0 12 16a3.98 3.98 0 0 0 2.24-.68l1.57 1.57A8.94 8.94 0 0 1 12 18a8.97 8.97 0 0 1-6.88-10.46Zm6.64.4 4.3 4.3c.12-.76-.12-1.56-.72-2.16a3.01 3.01 0 0 0-3.58-.53Zm-.84 1.99 2.93 2.93a1.97 1.97 0 0 1-2.93-2.93Z"/></svg>
+                </button>
+              </div>
+              <button class="editor-save composer-submit" type="submit">게시하기</button>
+            </div>
+            <section class="emoji-picker" id="emoji-picker" hidden>
+              <div class="emoji-search">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13Zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Zm6.4 10.98 3.8 3.8-1.42 1.42-3.8-3.8 1.42-1.42Z"/></svg>
+                <input id="emoji-search-input" type="search" placeholder="이모티콘 검색하기" />
+              </div>
+              <div class="emoji-categories" id="emoji-categories">
+                <button class="emoji-category is-active" type="button" data-emoji-category="smileys" aria-label="스마일">😀</button>
+                <button class="emoji-category" type="button" data-emoji-category="animals" aria-label="동물">🐻</button>
+                <button class="emoji-category" type="button" data-emoji-category="food" aria-label="음식">🍔</button>
+                <button class="emoji-category" type="button" data-emoji-category="activity" aria-label="활동">⚽</button>
+                <button class="emoji-category" type="button" data-emoji-category="travel" aria-label="여행">🚗</button>
+                <button class="emoji-category" type="button" data-emoji-category="objects" aria-label="사물">💡</button>
+                <button class="emoji-category" type="button" data-emoji-category="symbols" aria-label="기호">🔣</button>
+                <button class="emoji-category" type="button" data-emoji-category="flags" aria-label="깃발">🚩</button>
+              </div>
+              <div class="emoji-section-title" id="emoji-section-title">스마일리 및 사람</div>
+              <div class="emoji-grid" id="emoji-grid"></div>
+            </section>
+          </form>
+        </section>
+
+        <section class="feed" id="feed"></section>
+        </div>
+
+        <section class="app-view detail-view" data-view-panel="about" hidden>
+          <section class="detail-card about-page-card">
+            <div class="about-page-topbar">
+              <div class="about-page-menu" id="about-page-menu">
+                <button class="tweet-menu-button" type="button" id="about-menu-toggle" aria-label="About 메뉴">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm8 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm8 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"/></svg>
+                </button>
+                <div class="tweet-menu" id="about-menu">
+                  <button class="tweet-menu-item" type="button" id="about-edit-open">페이지 수정</button>
+                </div>
+              </div>
+            </div>
+            <div class="about-page-display" id="about-page-display">
+              <section class="about-services-board">
+                <div class="about-services-head">
+                  <div class="about-services-head-left">
+                    <p class="about-services-eyebrow" data-text-key="services_label">[ SERVICES ]</p>
+                    <h3 data-text-key="services_title">WHAT WE CAN DO</h3>
+                  </div>
+                  <div class="about-services-head-right">
+                    <p data-text-key="about_hero_intro">디자인을 기반으로, 실행되는 결과물을 만듭니다.</p>
+                  </div>
+                </div>
+                <div class="about-services-list" data-services-root>
+                  <article class="about-service-item is-open" data-service-item>
+                    <button class="about-service-toggle" type="button" data-service-toggle aria-expanded="true">
+                      <span class="about-service-index">01</span>
+                      <strong class="about-service-title" data-text-key="service_2_title">ABOUT</strong>
+                      <span class="about-service-arrow" aria-hidden="true">↗</span>
+                    </button>
+                    <div class="about-service-body">
+                      <div class="about-service-media" data-image-key="service_2_image" data-image-optional="true" hidden></div>
+                      <p data-text-key="service_2_body">모노메이트는 디자인을 중심으로 시작해 기획과 실행까지 확장하는 크리에이티브 스튜디오입니다. 단순히 보기 좋은 결과가 아니라 실제로 사용되고, 판매되고, 작동하는 결과물을 만듭니다. 브랜드, 콘텐츠, 디지털 제품까지 아이디어를 형태로 바꾸는 과정에 집중합니다.</p>
+                    </div>
+                  </article>
+                  <article class="about-service-item" data-service-item>
+                    <button class="about-service-toggle" type="button" data-service-toggle aria-expanded="false">
+                      <span class="about-service-index">02</span>
+                      <strong class="about-service-title" data-text-key="service_3_title">BACKGROUND</strong>
+                      <span class="about-service-arrow" aria-hidden="true">↗</span>
+                    </button>
+                    <div class="about-service-body" hidden>
+                      <div class="about-service-media" data-image-key="service_3_image" data-image-optional="true" hidden></div>
+                      <p data-text-key="service_3_body">디자인 실무를 기반으로 브랜딩, 콘텐츠, 공간, 디지털 작업까지 경험해왔습니다. 시각적인 완성도뿐 아니라 전달력과 구조, 실제 활용성을 중요하게 생각합니다.</p>
+                    </div>
+                  </article>
+                  <article class="about-service-item" data-service-item>
+                    <button class="about-service-toggle" type="button" data-service-toggle aria-expanded="false">
+                      <span class="about-service-index">03</span>
+                      <strong class="about-service-title" data-text-key="service_4_title">WHAT I DO</strong>
+                      <span class="about-service-arrow" aria-hidden="true">↗</span>
+                    </button>
+                    <div class="about-service-body" hidden>
+                      <div class="about-service-media" data-image-key="service_4_image" data-image-optional="true" hidden></div>
+                      <p data-text-key="service_4_body">브랜드 디자인 & 브랜딩, 콘텐츠 기획 & 비주얼 제작, 랜딩페이지 & 디지털 제품 제작, 전자파일(템플릿, 툴킷) 제작, 굿즈 디자인 및 판매</p>
+                    </div>
+                  </article>
+                  <article class="about-service-item" data-service-item>
+                    <button class="about-service-toggle" type="button" data-service-toggle aria-expanded="false">
+                      <span class="about-service-index">04</span>
+                      <strong class="about-service-title" data-text-key="service_5_title">APPROACH</strong>
+                      <span class="about-service-arrow" aria-hidden="true">↗</span>
+                    </button>
+                    <div class="about-service-body" hidden>
+                      <div class="about-service-media" data-image-key="service_5_image" data-image-optional="true" hidden></div>
+                      <p data-text-key="service_5_body">모노메이트는 ‘보기 좋은 디자인’에서 끝나지 않습니다. 바로 사용할 수 있어야 하고, 실제로 도움이 되어야 하며, 결국 가치로 이어져야 한다고 생각합니다. 그래서 모든 작업은 실행과 결과 중심으로 설계됩니다.</p>
+                    </div>
+                  </article>
+                  <article class="about-service-item" data-service-item>
+                    <button class="about-service-toggle" type="button" data-service-toggle aria-expanded="false">
+                      <span class="about-service-index">05</span>
+                      <strong class="about-service-title" data-text-key="service_6_title">PRODUCT & SHOP</strong>
+                      <span class="about-service-arrow" aria-hidden="true">↗</span>
+                    </button>
+                    <div class="about-service-body" hidden>
+                      <div class="about-service-media" data-image-key="service_6_image" data-image-optional="true" hidden></div>
+                      <p data-text-key="service_6_body">이 사이트에서는 직접 제작한 전자파일과 굿즈를 판매합니다. 브랜딩 템플릿, 디자인 리소스, 실무에서 바로 사용할 수 있는 도구들을 중심으로 지속적으로 업데이트됩니다.</p>
+                    </div>
+                  </article>
+                </div>
+                <div class="about-services-closing">
+                  <p data-text-key="service_7_body">모노메이트는 아이디어를 현실로 만드는 과정을 함께합니다. 작은 시작이라도, 실제 결과로 이어지게.</p>
+                </div>
+              </section>
+            </div>
+            <form class="about-editor" id="about-editor" hidden>
+              <div class="about-editor-note">
+                <strong>아코디언 편집</strong>
+                <p>어바웃 페이지 아코디언 제목과 내용을 바로 수정합니다. 이미지 권장 비율은 4:5이며, 880x1100 또는 1080x1350 크기를 추천합니다.</p>
+              </div>
+              <article class="about-editor-block">
+                <label><span>타이틀 옆 문구</span><textarea name="about_hero_intro"></textarea></label>
+              </article>
+              <article class="about-editor-block">
+                <label><span>항목 1 제목</span><input name="service_2_title" type="text" /></label>
+                <label><span>항목 1 내용</span><textarea name="service_2_body"></textarea></label>
+                <label><span>항목 1 이미지 URL</span><input name="service_2_image" type="text" /></label>
+                <input name="service_2_image_file" type="file" accept="image/*" hidden />
+                <button class="about-upload-button" type="button" data-service-image-upload="2">로컬 이미지 업로드</button>
+              </article>
+              <article class="about-editor-block">
+                <label><span>항목 2 제목</span><input name="service_3_title" type="text" /></label>
+                <label><span>항목 2 내용</span><textarea name="service_3_body"></textarea></label>
+                <label><span>항목 2 이미지 URL</span><input name="service_3_image" type="text" /></label>
+                <input name="service_3_image_file" type="file" accept="image/*" hidden />
+                <button class="about-upload-button" type="button" data-service-image-upload="3">로컬 이미지 업로드</button>
+              </article>
+              <article class="about-editor-block">
+                <label><span>항목 3 제목</span><input name="service_4_title" type="text" /></label>
+                <label><span>항목 3 내용</span><textarea name="service_4_body"></textarea></label>
+                <label><span>항목 3 이미지 URL</span><input name="service_4_image" type="text" /></label>
+                <input name="service_4_image_file" type="file" accept="image/*" hidden />
+                <button class="about-upload-button" type="button" data-service-image-upload="4">로컬 이미지 업로드</button>
+              </article>
+              <article class="about-editor-block">
+                <label><span>항목 4 제목</span><input name="service_5_title" type="text" /></label>
+                <label><span>항목 4 내용</span><textarea name="service_5_body"></textarea></label>
+                <label><span>항목 4 이미지 URL</span><input name="service_5_image" type="text" /></label>
+                <input name="service_5_image_file" type="file" accept="image/*" hidden />
+                <button class="about-upload-button" type="button" data-service-image-upload="5">로컬 이미지 업로드</button>
+              </article>
+              <article class="about-editor-block">
+                <label><span>항목 5 제목</span><input name="service_6_title" type="text" /></label>
+                <label><span>항목 5 내용</span><textarea name="service_6_body"></textarea></label>
+                <label><span>항목 5 이미지 URL</span><input name="service_6_image" type="text" /></label>
+                <input name="service_6_image_file" type="file" accept="image/*" hidden />
+                <button class="about-upload-button" type="button" data-service-image-upload="6">로컬 이미지 업로드</button>
+              </article>
+              <article class="about-editor-block">
+                <label><span>하단 문구</span><textarea name="service_7_body"></textarea></label>
+              </article>
+              <div class="about-editor-actions">
+                <button class="editor-ghost" type="button" id="about-edit-cancel">취소</button>
+                <button class="editor-save" type="submit">저장</button>
+              </div>
+            </form>
+          </section>
+        </section>
+
+        <section class="app-view detail-view" data-view-panel="search" hidden>
+          <header class="view-header">
+            <p class="eyebrow">SEARCH</p>
+            <h1>검색</h1>
+            <p>프로젝트 키워드, 기술 스택, 메모를 탐색하는 화면입니다.</p>
+          </header>
+          <section class="detail-card">
+            <div class="search-shell">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 5a5.5 5.5 0 1 0 5.5 5.5A5.5 5.5 0 0 0 10.5 5Z"/><path d="m14.75 14.75 4.25 4.25"/></svg>
+              <input id="search-view-input" type="search" placeholder="브랜딩, SNS, 코딩 같은 키워드를 찾아보세요." />
+            </div>
+            <div class="search-keyword-wrap">
+              <div class="search-keyword-head">
+                <strong>추천 검색어</strong>
+                <span>설정에서 직접 수정할 수 있습니다.</span>
+              </div>
+              <div class="search-keyword-list" id="search-keyword-list"></div>
+            </div>
+            <div class="search-results" id="search-results"></div>
+          </section>
+        </section>
+
+        <section class="app-view detail-view" data-view-panel="notifications" hidden>
+          <header class="view-header">
+            <p class="eyebrow">ALERTS</p>
+            <h1>알림</h1>
+          </header>
+          <section class="detail-list" id="notifications-list"></section>
+        </section>
+
+        <section class="app-view detail-view" data-view-panel="messages" hidden>
+          <section class="message-layout">
+            <aside class="message-sidebar">
+              <div class="message-sidebar-top">
+                <div class="message-title-row">
+                  <h1>채팅</h1>
+                  <div class="message-title-actions">
+                    <button class="message-filter" type="button" id="message-filter-toggle" aria-pressed="false">전체</button>
+                    <button class="message-icon-action" type="button" aria-label="새 대화" id="message-new-chat">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5.75h6.25A5.75 5.75 0 0 1 19 11.5v.75a5.75 5.75 0 0 1-5.75 5.75H10l-3.75 2.5v-4.02A5.75 5.75 0 0 1 2.5 11.5v0A5.75 5.75 0 0 1 8.25 5.75"/><path d="M18.5 6.5v5"/><path d="M16 9h5"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="message-search">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 5a5.5 5.5 0 1 0 5.5 5.5A5.5 5.5 0 0 0 10.5 5Z"/><path d="m14.75 14.75 4.25 4.25"/></svg>
+                  <input type="search" placeholder="검색" id="message-search-input" />
+                </div>
+              </div>
+              <div class="message-list-panel" id="message-list-panel">
+                <div class="message-list" id="message-list"></div>
+                <div class="message-empty-list" id="message-empty-list" hidden>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 6h13a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H9l-3.5 2.5V7a1 1 0 0 1 1-1Z"/></svg>
+                  <strong>빈 보관함</strong>
+                  <p>메시지 보내기</p>
+                </div>
+              </div>
+            </aside>
+            <div class="message-panel" id="message-panel">
+              <div class="message-empty-hero" id="message-empty-hero">
+                <span class="message-empty-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 6h13a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H9l-3.5 2.5V7a1 1 0 0 1 1-1Z"/></svg>
+                </span>
+                <h2 id="message-empty-title">대화 시작하기</h2>
+                <p id="message-empty-copy">기존 대화에서 선택하거나 새로운 대화를 만드세요.</p>
+                <button class="message-primary" type="button" id="message-empty-new-chat">새 채팅</button>
+              </div>
+              <div class="message-thread" id="message-thread" hidden>
+                <div class="message-thread-head">
+                  <div>
+                    <strong id="message-thread-title">새 대화</strong>
+                    <p id="message-thread-meta">Monomate와 대화 중</p>
+                  </div>
+                  <div class="message-thread-controls" id="message-thread-controls"></div>
+                </div>
+                <div class="message-thread-body" id="message-thread-body"></div>
+                <form class="message-compose" id="message-compose">
+                  <textarea id="message-compose-input" placeholder="메시지를 입력하세요." required></textarea>
+                  <button class="message-primary" type="submit">보내기</button>
+                </form>
+                <p class="message-compose-status" id="message-compose-status" hidden></p>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section class="app-view detail-view" data-view-panel="settings" hidden>
+          <section class="settings-layout">
+            <aside class="settings-sidebar">
+              <header class="settings-sidebar-head">
+                <h1>설정</h1>
+                <div class="settings-search-shell">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 5a5.5 5.5 0 1 0 5.5 5.5A5.5 5.5 0 0 0 10.5 5Z"/><path d="m14.75 14.75 4.25 4.25"/></svg>
+                  <input id="settings-search-input" type="search" placeholder="설정 검색하기" />
+                </div>
+              </header>
+              <div class="settings-nav">
+                <button class="settings-nav-item is-active" type="button" data-settings-panel="account">계정</button>
+                <button class="settings-nav-item" type="button" data-settings-panel="search">검색</button>
+                <button class="settings-nav-item" type="button" data-settings-panel="sales">판매 리스트</button>
+                <button class="settings-nav-item" type="button" data-settings-panel="notifications">알림</button>
+              </div>
+            </aside>
+            <section class="settings-content">
+              <div class="settings-section is-active" data-settings-section="account">
+                <h2>계정</h2>
+                <p>브랜드 운영 정보와 기본 공개 상태를 확인하세요.</p>
+                <div class="settings-option-list">
+                  <article class="settings-option-row">
+                    <div>
+                      <strong>프로필 공개</strong>
+                      <p>브랜드 소개와 주요 프로젝트를 모두 공개 상태로 유지합니다.</p>
+                    </div>
+                    <span class="setting-pill">공개</span>
+                  </article>
+                  <article class="settings-option-row">
+                    <div>
+                      <strong>메시지 알림</strong>
+                      <p>신규 협업 문의와 댓글 반응만 우선 알림으로 받습니다.</p>
+                    </div>
+                    <span class="setting-pill">중요만</span>
+                  </article>
+                  <article class="settings-option-row">
+                    <div>
+                      <strong>예약 게시물</strong>
+                      <p>설정된 예약 시간은 한국 표준시 기준으로 게시됩니다.</p>
+                    </div>
+                    <span class="setting-pill">KST</span>
+                  </article>
+                </div>
+              </div>
+              <div class="settings-section settings-editor-card" data-settings-section="search">
+                <div class="settings-editor-head">
+                  <div>
+                    <strong>추천 검색어 수정</strong>
+                    <p>쉼표로 구분해서 입력하면 검색 화면 추천 리스트가 바뀝니다.</p>
+                  </div>
+                </div>
+                <form id="settings-search-form" class="settings-search-form">
+                  <textarea id="settings-search-keywords" name="search_keywords"></textarea>
+                  <div class="about-editor-actions">
+                    <button class="editor-save" type="submit">저장</button>
+                  </div>
+                </form>
+              </div>
+              <div class="settings-section settings-editor-card" data-settings-section="sales">
+                <div class="settings-editor-head">
+                  <div>
+                    <strong>판매 리스트 관리</strong>
+                    <p>오른쪽 판매 리스트에 보일 항목과 판매 상태를 수정합니다.</p>
+                  </div>
+                </div>
+                <form id="settings-sales-form" class="settings-sales-form">
+                  <article class="settings-sales-item">
+                    <strong>상품 1</strong>
+                    <label><span>상품명</span><input id="sales-item-1-title" name="sales_item_1_title" type="text" /></label>
+                    <label><span>설명</span><textarea id="sales-item-1-body" name="sales_item_1_body"></textarea></label>
+                    <label><span>판매 링크</span><input id="sales-item-1-url" name="sales_item_1_url" type="url" /></label>
+                    <label class="settings-sales-toggle"><input id="sales-item-1-available" name="sales_item_1_available" type="checkbox" />판매 중</label>
+                  </article>
+                  <article class="settings-sales-item">
+                    <strong>상품 2</strong>
+                    <label><span>상품명</span><input id="sales-item-2-title" name="sales_item_2_title" type="text" /></label>
+                    <label><span>설명</span><textarea id="sales-item-2-body" name="sales_item_2_body"></textarea></label>
+                    <label><span>판매 링크</span><input id="sales-item-2-url" name="sales_item_2_url" type="url" /></label>
+                    <label class="settings-sales-toggle"><input id="sales-item-2-available" name="sales_item_2_available" type="checkbox" />판매 중</label>
+                  </article>
+                  <article class="settings-sales-item">
+                    <strong>상품 3</strong>
+                    <label><span>상품명</span><input id="sales-item-3-title" name="sales_item_3_title" type="text" /></label>
+                    <label><span>설명</span><textarea id="sales-item-3-body" name="sales_item_3_body"></textarea></label>
+                    <label><span>판매 링크</span><input id="sales-item-3-url" name="sales_item_3_url" type="url" /></label>
+                    <label class="settings-sales-toggle"><input id="sales-item-3-available" name="sales_item_3_available" type="checkbox" />판매 중</label>
+                  </article>
+                  <div class="about-editor-actions">
+                    <button class="editor-save" type="submit">저장</button>
+                  </div>
+                </form>
+              </div>
+              <div class="settings-section settings-editor-card" data-settings-section="notifications">
+                <div class="settings-editor-head">
+                  <div>
+                    <strong>알림 기준</strong>
+                    <p>알림 페이지에는 새 게시물 등록, 새로운 채팅, 공유, 하트 알림만 표시됩니다.</p>
+                  </div>
+                </div>
+                <div class="settings-option-list">
+                  <article class="settings-option-row">
+                    <div>
+                      <strong>새 게시물 등록</strong>
+                      <p>새 게시글이 등록되면 알림 화면에 바로 추가됩니다.</p>
+                    </div>
+                    <span class="setting-pill">활성</span>
+                  </article>
+                  <article class="settings-option-row">
+                    <div>
+                      <strong>새로운 채팅</strong>
+                      <p>새 문의 대화가 시작되면 알림으로 표시됩니다.</p>
+                    </div>
+                    <span class="setting-pill">활성</span>
+                  </article>
+                  <article class="settings-option-row">
+                    <div>
+                      <strong>공유 / 하트</strong>
+                      <p>게시물 반응은 공유와 하트만 알림으로 누적됩니다.</p>
+                    </div>
+                    <span class="setting-pill">활성</span>
+                  </article>
+                </div>
+              </div>
+            </section>
+          </section>
+        </section>
+      </main>
+
+      <aside class="sidebar-right" id="contact">
+        <section class="profile-card request-card reveal">
+          <h3>프로젝트 의뢰</h3>
+          <p class="profile-bio">브랜딩, 콘텐츠, 디지털 제품 제작 의뢰를 받고 있습니다. 필요한 작업 범위와 일정을 남겨주세요.</p>
+          <button class="request-cta" type="button" data-open-view="messages">프로젝트 의뢰하기</button>
+        </section>
+
+        <section class="widget-card reveal">
+          <h3>해시태그 추천</h3>
+          <div class="stack-grid">
+            <span>#브랜딩</span>
+            <span>#SNS디자인</span>
+            <span>#콘텐츠기획</span>
+            <span>#랜딩페이지</span>
+            <span>#템플릿</span>
+            <span>#디지털제품</span>
+          </div>
+        </section>
+
+        <section class="widget-card sales-card reveal">
+          <h3>판매 리스트</h3>
+          <div id="sales-list"></div>
+        </section>
+      </aside>
+    </div>
+
+    <div class="media-lightbox" id="media-lightbox" hidden>
+      <button class="media-lightbox-close" id="media-lightbox-close" type="button" aria-label="닫기">×</button>
+      <div class="media-lightbox-content" id="media-lightbox-content"></div>
+    </div>
+
+    <div class="schedule-modal" id="schedule-modal" hidden>
+      <div class="schedule-dialog" role="dialog" aria-modal="true" aria-labelledby="schedule-title">
+        <div class="schedule-dialog-head">
+          <button class="schedule-close" id="schedule-close" type="button" aria-label="닫기">×</button>
+          <h2 id="schedule-title">예약하기</h2>
+          <button class="schedule-confirm" id="schedule-confirm" type="button">확인</button>
+        </div>
+        <p class="schedule-summary" id="schedule-summary">전송 일정을 선택하세요.</p>
+        <div class="schedule-grid">
+          <label>
+            월
+            <select id="schedule-month"></select>
+          </label>
+          <label>
+            일
+            <select id="schedule-day"></select>
+          </label>
+          <label>
+            년
+            <select id="schedule-year"></select>
+          </label>
+          <label>
+            시
+            <select id="schedule-hour"></select>
+          </label>
+          <label>
+            분
+            <select id="schedule-minute"></select>
+          </label>
+          <label>
+            AM/PM
+            <select id="schedule-period">
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </label>
+        </div>
+        <div class="schedule-footer">
+          <span>시간대</span>
+          <strong>한국 표준시</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="schedule-modal brand-modal" id="brand-modal" hidden>
+      <div class="schedule-dialog brand-dialog" role="dialog" aria-modal="true" aria-labelledby="brand-modal-title">
+        <div class="schedule-dialog-head">
+          <button class="schedule-close" id="brand-modal-close" type="button" aria-label="닫기">×</button>
+          <h2 id="brand-modal-title">로고 이미지 수정</h2>
+          <span class="brand-modal-head-spacer" aria-hidden="true"></span>
+        </div>
+        <div class="brand-modal-body">
+          <div class="brand-modal-preview">
+            <span class="brand-mark-image" data-image-key="brand_logo">
+              <span class="brand-mark-fallback" data-text-key="profile_avatar_fallback">M</span>
+            </span>
+          </div>
+          <p>이미지 파일을 선택하면 좌측 로고와 게시글 프로필에 바로 반영됩니다.</p>
+          <input id="brand-logo-input" type="file" accept="image/*" hidden />
+          <button class="brand-modal-picker" id="brand-logo-picker" type="button">이미지 선택</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="schedule-modal share-modal" id="share-modal" hidden>
+      <div class="schedule-dialog share-dialog" role="dialog" aria-modal="true" aria-labelledby="share-modal-title">
+        <div class="schedule-dialog-head">
+          <button class="schedule-close" id="share-modal-close" type="button" aria-label="닫기">×</button>
+          <h2 id="share-modal-title">공유하기</h2>
+          <span class="brand-modal-head-spacer" aria-hidden="true"></span>
+        </div>
+        <div class="share-modal-body">
+          <p class="share-modal-copy" id="share-modal-copy">게시물 링크를 복사하거나 SNS 채널로 바로 공유할 수 있습니다.</p>
+          <div class="share-link-row">
+            <input id="share-link-input" type="text" readonly />
+            <button class="editor-save share-copy-button" id="share-copy-button" type="button">링크 복사</button>
+          </div>
+          <div class="share-channel-grid" id="share-channel-grid">
+            <a class="share-channel-button" id="share-x" href="#" target="_blank" rel="noreferrer">X</a>
+            <a class="share-channel-button" id="share-facebook" href="#" target="_blank" rel="noreferrer">Facebook</a>
+            <a class="share-channel-button" id="share-linkedin" href="#" target="_blank" rel="noreferrer">LinkedIn</a>
+            <a class="share-channel-button" id="share-email" href="#">Email</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="schedule-modal admin-modal" id="admin-modal" hidden>
+      <div class="schedule-dialog admin-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-modal-title">
+        <div class="schedule-dialog-head">
+          <button class="schedule-close" id="admin-modal-close" type="button" aria-label="닫기">×</button>
+          <h2 id="admin-modal-title">관리자 모드</h2>
+          <span class="brand-modal-head-spacer" aria-hidden="true"></span>
+        </div>
+        <form class="admin-modal-body" id="admin-auth-form">
+          <p class="admin-modal-copy" id="admin-modal-copy">관리자 비밀번호를 입력하세요.</p>
+          <label class="admin-modal-field">
+            <span id="admin-password-label">비밀번호</span>
+            <input id="admin-password-input" type="password" autocomplete="current-password" required />
+          </label>
+          <label class="admin-modal-field" id="admin-password-confirm-field" hidden>
+            <span>비밀번호 확인</span>
+            <input id="admin-password-confirm-input" type="password" autocomplete="new-password" />
+          </label>
+          <p class="admin-modal-error" id="admin-modal-error" hidden></p>
+          <button class="editor-save admin-auth-submit" id="admin-auth-submit" type="submit">관리자 들어가기</button>
+        </form>
+      </div>
+    </div>
+
+    <form name="project-inquiry" netlify hidden data-netlify="true">
+      <input type="hidden" name="form-name" value="project-inquiry" />
+      <input type="text" name="conversation_id" />
+      <input type="text" name="client_id" />
+      <input type="text" name="client_name" />
+      <input type="text" name="visibility" />
+      <input type="text" name="status" />
+      <input type="text" name="submitted_at" />
+      <input type="text" name="page_url" />
+      <textarea name="message"></textarea>
+    </form>
+
+    <script src="./script.js"></script>
+  </body>
+</html>

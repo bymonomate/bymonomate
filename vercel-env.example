@@ -1,0 +1,4 @@
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+MONOMATE_ADMIN_PASSWORD=change-this-in-vercel
+MONOMATE_ADMIN_SESSION_SECRET=change-this-too
