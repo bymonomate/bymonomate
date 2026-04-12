@@ -2436,6 +2436,21 @@ body[data-viewer-role="client"] #about-page-menu {
   margin-top: 18px;
 }
 
+.settings-sales-mode {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.settings-sales-mode p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
 .settings-sales-item {
   display: grid;
   gap: 12px;
@@ -2607,6 +2622,21 @@ body[data-viewer-role="client"] #about-page-menu {
   color: #050505;
   font-size: 0.9rem;
   font-weight: 700;
+}
+
+.sales-coming-soon {
+  display: grid;
+  gap: 8px;
+  padding: 16px 16px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.sales-coming-soon p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
 }
 
 .tweet-card.is-highlighted {

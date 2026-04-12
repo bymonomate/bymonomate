@@ -3,6 +3,7 @@ const CLIENT_SESSION_KEY = "monomate-client-session-id";
 const ADMIN_SESSION_KEY = "monomate-admin-authenticated";
 const API_SITE_STATE_ENDPOINT = "/api/site-state";
 const API_ADMIN_AUTH_ENDPOINT = "/api/admin-auth";
+const API_INQUIRIES_ENDPOINT = "/api/inquiries";
 const REMOTE_SYNC_INTERVAL = 8000;
 
 const DEFAULT_POSTS = [
@@ -136,6 +137,7 @@ const DEFAULT_CONFIG = {
     "콘텐츠 기획",
     "디지털 제품",
   ],
+  sales_list_enabled: false,
   sales_items: [
     {
       title: "브랜딩 템플릿 세트",
@@ -328,6 +330,7 @@ const normalizePost = (post, index) => ({
 const buildConfig = (parsed = {}, localOverrides = {}) => {
   const currentClientId = getClientSessionId();
   const base = cloneDefault();
+  const rawConversations = localOverrides.conversations ?? parsed.conversations;
   const next = {
     ...base,
     ...parsed,
@@ -337,8 +340,8 @@ const buildConfig = (parsed = {}, localOverrides = {}) => {
     posts: Array.isArray(parsed.posts) && parsed.posts.length
       ? parsed.posts.map(normalizePost)
       : base.posts.map(normalizePost),
-    conversations: Array.isArray(parsed.conversations)
-      ? parsed.conversations.map((conversation, index) =>
+    conversations: Array.isArray(rawConversations)
+      ? rawConversations.map((conversation, index) =>
           normalizeConversation(conversation, index, {
             ...base,
             ...parsed,
@@ -404,6 +407,7 @@ let remoteStateUpdatedAt = "";
 let remoteSyncTimer = null;
 let remoteSaveTimer = null;
 let isHydratingFromRemote = false;
+let remoteInquirySyncTimer = null;
 if (!String(config.services_title || "").trim()) {
   config.services_title = DEFAULT_CONFIG.services_title;
 }
@@ -556,12 +560,14 @@ const getSharedConfigPayload = (source = config) => {
     admin_password,
     client_id,
     client_name,
+    conversations,
     ...shared
   } = source;
   void viewer_role;
   void admin_password;
   void client_id;
   void client_name;
+  void conversations;
   return shared;
 };
 
@@ -653,6 +659,47 @@ const startRemoteSync = () => {
   }
   remoteSyncTimer = window.setInterval(() => {
     void fetchRemoteState({ silent: true });
+  }, REMOTE_SYNC_INTERVAL);
+};
+
+const getInquiryAuthHeaders = () => {
+  const token = getAdminAuthToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+const fetchRemoteInquiries = async ({ silent = false } = {}) => {
+  try {
+    const params = new URLSearchParams();
+    params.set("clientId", getClientSessionId());
+    const response = await fetch(`${API_INQUIRIES_ENDPOINT}?${params.toString()}`, {
+      headers: {
+        Accept: "application/json",
+        ...getInquiryAuthHeaders(),
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`Inquiry request failed: ${response.status}`);
+    }
+    const payload = await response.json();
+    const conversations = Array.isArray(payload?.conversations)
+      ? payload.conversations.map((conversation, index) => normalizeConversation(conversation, index, config))
+      : [];
+    config.conversations = conversations;
+    cacheConfigLocally();
+    renderMessages();
+  } catch (error) {
+    if (!silent) {
+      console.error("Remote inquiry load failed", error);
+    }
+  }
+};
+
+const startInquirySync = () => {
+  if (remoteInquirySyncTimer) {
+    window.clearInterval(remoteInquirySyncTimer);
+  }
+  remoteInquirySyncTimer = window.setInterval(() => {
+    void fetchRemoteInquiries({ silent: true });
   }, REMOTE_SYNC_INTERVAL);
 };
 
@@ -795,16 +842,18 @@ const getSearchResults = (query) => {
       postId: post.id,
     }));
 
-  const salesMatches = getSalesItems()
-    .filter((item) => `${item.title} ${item.body}`.toLowerCase().includes(term))
-    .slice(0, 3)
-    .map((item) => ({
-      type: "sale",
-      title: item.title,
-      body: item.body,
-      action: item.available ? "구매 페이지" : "문의하기",
-      url: item.url,
-    }));
+  const salesMatches = config.sales_list_enabled
+    ? getSalesItems()
+        .filter((item) => `${item.title} ${item.body}`.toLowerCase().includes(term))
+        .slice(0, 3)
+        .map((item) => ({
+          type: "sale",
+          title: item.title,
+          body: item.body,
+          action: item.available ? "구매 페이지" : "문의하기",
+          url: item.url,
+        }))
+    : [];
 
   return [...postMatches, ...salesMatches];
 };
@@ -869,7 +918,17 @@ const renderSearchResults = (query = "") => {
 
 const renderSalesItems = () => {
   if (!salesList) return;
+  const isEnabled = Boolean(config.sales_list_enabled);
   const items = getSalesItems();
+  if (!isEnabled) {
+    salesList.innerHTML = `
+      <article class="sales-coming-soon">
+        <strong>준비 중</strong>
+        <p>판매 가능한 디지털 다운로드와 굿즈 리스트를 곧 업데이트할 예정입니다.</p>
+      </article>
+    `;
+    return;
+  }
   salesList.innerHTML = items
     .filter((item) => item.title || item.body)
     .map(
@@ -1018,7 +1077,7 @@ const renderMessages = () => {
   renderMessageThread();
 };
 
-const createConversation = () => {
+const createConversation = async () => {
   const createdAt = new Date().toISOString();
   const initialText = isAdminViewer()
     ? "새 문의 스레드가 열렸습니다. 필요한 내용을 남겨주세요."
@@ -1056,9 +1115,41 @@ const createConversation = () => {
   saveConfig();
   renderMessages();
   renderNotifications();
+  try {
+    const response = await fetch(API_INQUIRIES_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...getInquiryAuthHeaders(),
+      },
+      body: JSON.stringify({
+        action: "create",
+        conversation,
+        clientId: getClientSessionId(),
+        clientName: config.client_name,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Inquiry create failed: ${response.status}`);
+    }
+    const payload = await response.json();
+    const remoteConversation = payload?.conversation;
+    if (remoteConversation) {
+      config.conversations = [
+        normalizeConversation(remoteConversation, 0, config),
+        ...(Array.isArray(config.conversations) ? config.conversations.filter((item) => item.id !== conversation.id) : []),
+      ];
+      selectedConversationId = remoteConversation.id;
+      cacheConfigLocally();
+      renderMessages();
+    }
+  } catch (error) {
+    console.error("Inquiry create sync failed", error);
+  }
 };
 
-const sendMessage = (text) => {
+const sendMessage = async (text) => {
   const content = text.trim();
   if (!content) return;
   const now = new Date().toISOString();
@@ -1103,14 +1194,63 @@ const sendMessage = (text) => {
   });
   saveConfig();
   renderMessages();
-  if (!isAdminViewer() && updatedConversation) {
-    void submitInquiryToNetlify(updatedConversation, content);
+  if (!updatedConversation) return;
+  try {
+    const response = await fetch(API_INQUIRIES_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...getInquiryAuthHeaders(),
+      },
+      body: JSON.stringify({
+        action: "message",
+        conversationId: updatedConversation.id,
+        message: {
+          sender: isAdminViewer() ? "admin" : "client",
+          text: content,
+        },
+        clientId: getClientSessionId(),
+        clientName: config.client_name,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Inquiry message failed: ${response.status}`);
+    }
+    const payload = await response.json();
+    if (payload?.conversation) {
+      config.conversations = (Array.isArray(config.conversations) ? config.conversations : []).map((conversation, index) => {
+        if (conversation.id !== updatedConversation.id) return normalizeConversation(conversation, index, config);
+        return normalizeConversation(payload.conversation, index, config);
+      });
+      cacheConfigLocally();
+      renderMessages();
+    }
+    if (!isAdminViewer() && messageComposeStatus) {
+      messageComposeStatus.hidden = false;
+      messageComposeStatus.className = "message-compose-status is-success";
+      messageComposeStatus.textContent = payload?.emailSent
+        ? "의뢰 내용이 저장되었고 메일 알림도 전송되었습니다."
+        : "의뢰 내용이 저장되었습니다.";
+    }
+  } catch (error) {
+    console.error("Inquiry message sync failed", error);
+    if (!isAdminViewer() && messageComposeStatus) {
+      messageComposeStatus.hidden = false;
+      messageComposeStatus.className = "message-compose-status is-error";
+      messageComposeStatus.textContent = "의뢰 내용은 현재 브라우저에만 저장되었습니다. API 연결 상태를 확인해주세요.";
+    }
   }
 };
 
 const fillSettingsForm = () => {
   if (settingsSearchKeywords) {
     settingsSearchKeywords.value = getSearchKeywords().join(", ");
+  }
+
+  const salesEnabledField = document.querySelector("#sales-list-enabled");
+  if (salesEnabledField) {
+    salesEnabledField.checked = Boolean(config.sales_list_enabled);
   }
 
   const items = getSalesItems();
@@ -1267,12 +1407,13 @@ const setViewerRole = (role) => {
   }
   saveConfig({ remote: false });
   renderConfig();
+  void fetchRemoteInquiries({ silent: true });
 };
 
-const openSalesInquiry = (title = "") => {
+const openSalesInquiry = async (title = "") => {
   setActiveView("messages");
   if (!getConversations().length) {
-    createConversation();
+    await createConversation();
   }
   if (messageComposeInput) {
     messageComposeInput.value = title ? `[판매 문의] ${title}\n구매 가능 여부와 상세 정보를 알려주세요.` : "구매 가능 여부와 상세 정보를 알려주세요.";
@@ -2412,14 +2553,14 @@ navLinks.forEach((link) => {
 });
 
 openViewButtons.forEach((button) => {
-  button.addEventListener("click", () => {
+  button.addEventListener("click", async () => {
     const targetView = button.dataset.openView || "home";
     const shouldCreateInquiry =
       targetView === "messages" &&
       !isAdminViewer() &&
       (button.classList.contains("request-cta") || !getConversations().length);
     if (shouldCreateInquiry) {
-      createConversation();
+      await createConversation();
     }
     setActiveView(targetView);
   });
@@ -2511,6 +2652,7 @@ settingsSearchInput?.addEventListener("input", () => {
 
 settingsSalesForm?.addEventListener("submit", (event) => {
   event.preventDefault();
+  config.sales_list_enabled = Boolean(document.querySelector("#sales-list-enabled")?.checked);
   config.sales_items = [1, 2, 3].map((number) => ({
     title: String(document.querySelector(`#sales-item-${number}-title`)?.value || "").trim(),
     body: String(document.querySelector(`#sales-item-${number}-body`)?.value || "").trim(),
@@ -2555,14 +2697,14 @@ messageThreadControls?.addEventListener("change", (event) => {
   }
 });
 
-messageCompose?.addEventListener("submit", (event) => {
+messageCompose?.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!selectedConversationId) {
-    createConversation();
+    await createConversation();
   }
   const text = String(messageComposeInput?.value || "");
   if (!text.trim()) return;
-  sendMessage(text);
+  await sendMessage(text);
   if (messageComposeInput) {
     messageComposeInput.value = "";
   }
@@ -2876,6 +3018,7 @@ document.addEventListener("keydown", (event) => {
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) {
     void fetchRemoteState({ silent: true });
+    void fetchRemoteInquiries({ silent: true });
   }
 });
 
@@ -2886,3 +3029,5 @@ if (config.viewer_role === "admin" && !isAdminAuthenticated()) {
 setViewerRole(config.viewer_role || "client");
 void fetchRemoteState();
 startRemoteSync();
+void fetchRemoteInquiries();
+startInquirySync();
