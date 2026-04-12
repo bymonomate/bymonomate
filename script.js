@@ -291,6 +291,9 @@ const normalizeMediaItems = (post) => {
       .map((item) => ({
         src: String(item.src || ""),
         type: String(item.type || "image"),
+        width: Number(item.width || 0),
+        height: Number(item.height || 0),
+        aspectRatio: Number(item.aspectRatio || 0),
       }))
       .filter((item) => item.src);
   }
@@ -302,6 +305,9 @@ const normalizeMediaItems = (post) => {
     {
       src: legacyMedia,
       type: String(post.mediaType || (legacyMedia.startsWith("data:video") ? "video" : "image")),
+      width: 0,
+      height: 0,
+      aspectRatio: 0,
     },
   ];
 };
@@ -1539,8 +1545,12 @@ const closeLightbox = () => {
 const renderMediaGallery = (mediaItems, prefix) => {
   if (!mediaItems.length) return "";
   const count = Math.min(mediaItems.length, 4);
+  const firstItem = mediaItems[0];
+  const firstRatio = Number(firstItem?.aspectRatio || 0);
+  const singleLayout =
+    count === 1 ? (firstRatio > 0 && firstRatio < 0.8 ? "cropped" : "natural") : "";
   return `
-    <div class="tweet-media-gallery media-count-${count}">
+    <div class="tweet-media-gallery media-count-${count}${singleLayout ? ` media-layout-${singleLayout}` : ""}">
       ${mediaItems
         .slice(0, 4)
         .map(
@@ -1605,7 +1615,13 @@ const renderComposerPreview = () => {
   }
 
   composerMediaPreview.hidden = false;
-  composerMediaPreview.className = `composer-media-preview is-${composerMediaItems.length === 1 ? "single" : "grid"}`;
+  const singleLayout =
+    composerMediaItems.length === 1
+      ? Number(composerMediaItems[0]?.aspectRatio || 0) > 0 && Number(composerMediaItems[0]?.aspectRatio || 0) < 0.8
+        ? " is-cropped"
+        : " is-natural"
+      : "";
+  composerMediaPreview.className = `composer-media-preview is-${composerMediaItems.length === 1 ? "single" : "grid"}${singleLayout}`;
   composerMediaPreview.innerHTML = composerMediaItems
     .map(
       (item, index) => `
@@ -1623,7 +1639,14 @@ const renderComposerPreview = () => {
 
 const renderMediaPreviewMarkup = (mediaItems, prefix) => {
   if (!mediaItems.length) return "";
-  const previewClass = mediaItems.length === 1 ? "composer-media-preview is-single" : "composer-media-preview is-grid";
+  const previewClass =
+    mediaItems.length === 1
+      ? `composer-media-preview is-single ${
+          Number(mediaItems[0]?.aspectRatio || 0) > 0 && Number(mediaItems[0]?.aspectRatio || 0) < 0.8
+            ? "is-cropped"
+            : "is-natural"
+        }`
+      : "composer-media-preview is-grid";
   return `
     <div class="${previewClass}" data-edit-preview="${prefix}">
       ${mediaItems
@@ -1642,6 +1665,60 @@ const renderMediaPreviewMarkup = (mediaItems, prefix) => {
     </div>
   `;
 };
+
+const readMediaItem = (file) =>
+  new Promise((resolve) => {
+    const reader = new FileReader();
+    const type = file.type.startsWith("video/") ? "video" : "image";
+    const finalize = (src, meta = {}) =>
+      resolve({
+        src: String(src || ""),
+        type,
+        width: Number(meta.width || 0),
+        height: Number(meta.height || 0),
+        aspectRatio: Number(meta.aspectRatio || 0),
+      });
+
+    reader.onload = () => {
+      const src = String(reader.result || "");
+      if (!src) {
+        finalize("");
+        return;
+      }
+
+      if (type === "image") {
+        const img = new Image();
+        img.onload = () => {
+          const width = Number(img.naturalWidth || 0);
+          const height = Number(img.naturalHeight || 0);
+          finalize(src, {
+            width,
+            height,
+            aspectRatio: width && height ? width / height : 0,
+          });
+        };
+        img.onerror = () => finalize(src);
+        img.src = src;
+        return;
+      }
+
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.onloadedmetadata = () => {
+        const width = Number(video.videoWidth || 0);
+        const height = Number(video.videoHeight || 0);
+        finalize(src, {
+          width,
+          height,
+          aspectRatio: width && height ? width / height : 0,
+        });
+      };
+      video.onerror = () => finalize(src);
+      video.src = src;
+    };
+
+    reader.readAsDataURL(file);
+  });
 
 const updateComposerMeta = () => {
   const scheduleValue = composerScheduleInput?.value || "";
@@ -2291,19 +2368,7 @@ const bindPostActions = () => {
       if (!files.length) return;
 
       Promise.all(
-        files.map(
-          (file) =>
-            new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onload = () => {
-                resolve({
-                  src: String(reader.result || ""),
-                  type: file.type.startsWith("video/") ? "video" : "image",
-                });
-              };
-              reader.readAsDataURL(file);
-            })
-        )
+        files.map((file) => readMediaItem(file))
       ).then((items) => {
         const draft = ensureEditDraft(id);
         draft.mediaItems = [...draft.mediaItems, ...items].slice(0, 4);
@@ -2799,19 +2864,7 @@ composerMediaInput?.addEventListener("change", () => {
   if (!files.length) return;
 
   Promise.all(
-    files.map(
-      (file) =>
-        new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            resolve({
-              src: String(reader.result || ""),
-              type: file.type.startsWith("video/") ? "video" : "image",
-            });
-          };
-          reader.readAsDataURL(file);
-        })
-    )
+    files.map((file) => readMediaItem(file))
   ).then((items) => {
     composerMediaItems = [...composerMediaItems, ...items].slice(0, 4);
     renderComposerPreview();

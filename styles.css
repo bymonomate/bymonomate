@@ -464,6 +464,15 @@ body[data-viewer-role="client"] #about-page-menu {
   aspect-ratio: 4 / 3;
 }
 
+.composer-media-preview.is-single.is-natural .composer-media-thumb {
+  aspect-ratio: auto;
+  max-height: 540px;
+}
+
+.composer-media-preview.is-single.is-cropped .composer-media-thumb {
+  aspect-ratio: 4 / 5;
+}
+
 .composer-media-preview.is-grid .composer-media-thumb {
   aspect-ratio: 1 / 1;
 }
@@ -939,6 +948,26 @@ body[data-viewer-role="client"] #about-page-menu {
 
 .tweet-media-gallery.media-count-1 .tweet-media-thumb {
   aspect-ratio: 4 / 3;
+}
+
+.tweet-media-gallery.media-count-1.media-layout-natural .tweet-media-thumb {
+  aspect-ratio: auto;
+  max-height: 560px;
+}
+
+.tweet-media-gallery.media-count-1.media-layout-natural .tweet-media-thumb img,
+.tweet-media-gallery.media-count-1.media-layout-natural .tweet-media-thumb video,
+.composer-media-preview.is-single.is-natural .composer-media-thumb img,
+.composer-media-preview.is-single.is-natural .composer-media-thumb video {
+  width: 100%;
+  height: auto;
+  max-height: 560px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tweet-media-gallery.media-count-1.media-layout-cropped .tweet-media-thumb {
+  aspect-ratio: 4 / 5;
 }
 
 .tweet-media-gallery.media-count-2 {
