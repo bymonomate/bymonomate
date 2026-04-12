@@ -295,6 +295,7 @@ const normalizeMediaItems = (post) => {
       .map((item) => ({
         src: String(item.src || ""),
         type: String(item.type || "image"),
+        poster: String(item.poster || ""),
         width: Number(item.width || 0),
         height: Number(item.height || 0),
         aspectRatio: Number(item.aspectRatio || 0),
@@ -309,6 +310,7 @@ const normalizeMediaItems = (post) => {
     {
       src: legacyMedia,
       type: String(post.mediaType || (legacyMedia.startsWith("data:video") ? "video" : "image")),
+      poster: String(post.poster || ""),
       width: 0,
       height: 0,
       aspectRatio: 0,
@@ -398,6 +400,7 @@ const uploadPendingMediaItems = async (mediaItems = []) => {
       nextItems.push({
         src: String(item.src || ""),
         type: String(item.type || "image"),
+        poster: String(item.poster || ""),
         width: Number(item.width || 0),
         height: Number(item.height || 0),
         aspectRatio: Number(item.aspectRatio || 0),
@@ -409,6 +412,7 @@ const uploadPendingMediaItems = async (mediaItems = []) => {
     nextItems.push({
       src: remoteSrc,
       type: String(item.type || "image"),
+      poster: String(item.poster || ""),
       width: Number(item.width || 0),
       height: Number(item.height || 0),
       aspectRatio: Number(item.aspectRatio || 0),
@@ -1673,7 +1677,7 @@ const renderMediaGallery = (mediaItems, prefix) => {
             >
               ${
                 item.type === "video"
-                  ? `<video src="${item.src}" muted playsinline preload="metadata"></video>`
+                  ? `<video src="${item.src}" ${item.poster ? `poster="${item.poster}"` : ""} muted playsinline preload="metadata"></video>`
                   : `<img src="${item.src}" alt="첨부 이미지 ${index + 1}" />`
               }
             </button>
@@ -1702,7 +1706,7 @@ const createGalleryMarkup = (posts) =>
             ${
               firstMedia
                 ? firstMedia.type === "video"
-                  ? `<video src="${firstMedia.src}" muted playsinline preload="metadata"></video>`
+                  ? `<video src="${firstMedia.src}" ${firstMedia.poster ? `poster="${firstMedia.poster}"` : ""} muted playsinline preload="metadata"></video>`
                   : `<img src="${firstMedia.src}" alt="게시물 썸네일" />`
                 : `<div class="gallery-card-copy"><span class="gallery-quote">“</span><p>${excerpt}</p></div>`
             }
@@ -1736,7 +1740,7 @@ const renderComposerPreview = () => {
         <div class="composer-media-thumb" data-composer-thumb="${index}">
           ${
             item.type === "video"
-              ? `<video src="${item.src}" controls playsinline preload="metadata"></video>`
+              ? `<video src="${item.src}" ${item.poster ? `poster="${item.poster}"` : ""} controls playsinline preload="metadata"></video>`
               : `<img src="${item.src}" alt="업로드 미리보기 ${index + 1}" />`
           }
         </div>
@@ -1763,7 +1767,7 @@ const renderMediaPreviewMarkup = (mediaItems, prefix) => {
             <div class="composer-media-thumb" data-edit-thumb="${prefix}-${index}">
               ${
                 item.type === "video"
-                  ? `<video src="${item.src}" controls playsinline preload="metadata"></video>`
+                  ? `<video src="${item.src}" ${item.poster ? `poster="${item.poster}"` : ""} controls playsinline preload="metadata"></video>`
                   : `<img src="${item.src}" alt="업로드 미리보기 ${index + 1}" />`
               }
             </div>
@@ -1782,6 +1786,7 @@ const readMediaItem = (file) =>
       resolve({
         src: String(src || ""),
         type,
+        poster: String(meta.poster || ""),
         width: Number(meta.width || 0),
         height: Number(meta.height || 0),
         aspectRatio: Number(meta.aspectRatio || 0),
@@ -1809,11 +1814,49 @@ const readMediaItem = (file) =>
     video.onloadedmetadata = () => {
       const width = Number(video.videoWidth || 0);
       const height = Number(video.videoHeight || 0);
-      finalize(previewUrl, {
-        width,
-        height,
-        aspectRatio: width && height ? width / height : 0,
-      });
+      const complete = (poster = "") =>
+        finalize(previewUrl, {
+          width,
+          height,
+          aspectRatio: width && height ? width / height : 0,
+          poster,
+        });
+
+      const capturePoster = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = width || 1;
+          canvas.height = height || 1;
+          const context = canvas.getContext("2d");
+          if (!context) {
+            complete("");
+            return;
+          }
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          complete(canvas.toDataURL("image/jpeg", 0.82));
+        } catch (error) {
+          complete("");
+        }
+      };
+
+      const seekTarget = Number.isFinite(video.duration) && video.duration > 0.2 ? 0.1 : 0;
+      const onSeeked = () => {
+        video.removeEventListener("seeked", onSeeked);
+        capturePoster();
+      };
+
+      video.addEventListener("seeked", onSeeked, { once: true });
+      try {
+        video.currentTime = seekTarget;
+        if (seekTarget === 0) {
+          window.setTimeout(() => {
+            if (!video.seeking) capturePoster();
+          }, 50);
+        }
+      } catch (error) {
+        video.removeEventListener("seeked", onSeeked);
+        capturePoster();
+      }
     };
     video.onerror = () => finalize(previewUrl);
     video.src = previewUrl;
