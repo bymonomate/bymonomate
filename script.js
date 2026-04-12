@@ -1753,7 +1753,7 @@ const updateComposerSubmitState = () => {
   if (!(composerSubmitButton instanceof HTMLButtonElement)) return;
   const hasContent = String(composerTextarea?.value || "").trim().length > 0;
   const canSubmit = isAdminViewer() && hasContent;
-  composerSubmitButton.disabled = !canSubmit;
+  composerSubmitButton.classList.toggle("is-disabled", !canSubmit);
   composerSubmitButton.setAttribute("aria-disabled", canSubmit ? "false" : "true");
 };
 
@@ -2892,7 +2892,10 @@ composer?.addEventListener("submit", (event) => {
   if (!isAdminViewer()) return;
   const formData = new FormData(composer);
   const content = String(formData.get("content") || "").trim();
-  if (!content) return;
+  if (!content) {
+    composerTextarea?.focus();
+    return;
+  }
 
   const isPrivate = privacyButton?.classList.contains("is-active");
 
