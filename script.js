@@ -407,7 +407,6 @@ let remoteStateUpdatedAt = "";
 let remoteSyncTimer = null;
 let remoteSaveTimer = null;
 let isHydratingFromRemote = false;
-let remoteInquirySyncTimer = null;
 if (!String(config.services_title || "").trim()) {
   config.services_title = DEFAULT_CONFIG.services_title;
 }
@@ -471,6 +470,16 @@ const shareX = document.querySelector("#share-x");
 const shareFacebook = document.querySelector("#share-facebook");
 const shareLinkedin = document.querySelector("#share-linkedin");
 const shareEmail = document.querySelector("#share-email");
+const inquiryModal = document.querySelector("#inquiry-modal");
+const inquiryModalClose = document.querySelector("#inquiry-modal-close");
+const inquiryForm = document.querySelector("#inquiry-form");
+const inquiryOpenButton = document.querySelector("#project-inquiry-open");
+const inquiryCancelButton = document.querySelector("#inquiry-cancel");
+const inquiryNameInput = document.querySelector("#inquiry-name");
+const inquiryEmailInput = document.querySelector("#inquiry-email");
+const inquirySubjectInput = document.querySelector("#inquiry-subject");
+const inquiryMetaInput = document.querySelector("#inquiry-meta");
+const inquiryMessageInput = document.querySelector("#inquiry-message");
 const adminModal = document.querySelector("#admin-modal");
 const adminModalClose = document.querySelector("#admin-modal-close");
 const adminAuthForm = document.querySelector("#admin-auth-form");
@@ -665,42 +674,6 @@ const startRemoteSync = () => {
 const getInquiryAuthHeaders = () => {
   const token = getAdminAuthToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
-const fetchRemoteInquiries = async ({ silent = false } = {}) => {
-  try {
-    const params = new URLSearchParams();
-    params.set("clientId", getClientSessionId());
-    const response = await fetch(`${API_INQUIRIES_ENDPOINT}?${params.toString()}`, {
-      headers: {
-        Accept: "application/json",
-        ...getInquiryAuthHeaders(),
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`Inquiry request failed: ${response.status}`);
-    }
-    const payload = await response.json();
-    const conversations = Array.isArray(payload?.conversations)
-      ? payload.conversations.map((conversation, index) => normalizeConversation(conversation, index, config))
-      : [];
-    config.conversations = conversations;
-    cacheConfigLocally();
-    renderMessages();
-  } catch (error) {
-    if (!silent) {
-      console.error("Remote inquiry load failed", error);
-    }
-  }
-};
-
-const startInquirySync = () => {
-  if (remoteInquirySyncTimer) {
-    window.clearInterval(remoteInquirySyncTimer);
-  }
-  remoteInquirySyncTimer = window.setInterval(() => {
-    void fetchRemoteInquiries({ silent: true });
-  }, REMOTE_SYNC_INTERVAL);
 };
 
 const saveConfig = ({ remote = true } = {}) => {
@@ -1407,18 +1380,13 @@ const setViewerRole = (role) => {
   }
   saveConfig({ remote: false });
   renderConfig();
-  void fetchRemoteInquiries({ silent: true });
 };
 
 const openSalesInquiry = async (title = "") => {
-  setActiveView("messages");
-  if (!getConversations().length) {
-    await createConversation();
-  }
-  if (messageComposeInput) {
-    messageComposeInput.value = title ? `[판매 문의] ${title}\n구매 가능 여부와 상세 정보를 알려주세요.` : "구매 가능 여부와 상세 정보를 알려주세요.";
-    messageComposeInput.focus();
-  }
+  openInquiryModal({
+    subject: title ? `[판매 문의] ${title}` : "판매 문의",
+    message: "구매 가능 여부와 상세 정보를 알려주세요.",
+  });
 };
 
 const submitInquiryToNetlify = async (conversation, message) => {
@@ -1556,6 +1524,7 @@ const updateBodyLock = () => {
     brandModal?.hidden === false ||
     lightbox?.hidden === false ||
     shareModal?.hidden === false ||
+    inquiryModal?.hidden === false ||
     adminModal?.hidden === false;
   document.body.style.overflow = hasOpenOverlay ? "hidden" : "";
 };
@@ -1952,6 +1921,45 @@ const closeShareModal = () => {
   shareModal.hidden = true;
   activeSharePostId = "";
   updateBodyLock();
+};
+
+const openInquiryModal = (prefill = {}) => {
+  if (!inquiryModal) return;
+  if (inquirySubjectInput) inquirySubjectInput.value = String(prefill.subject || "");
+  if (inquiryMessageInput) inquiryMessageInput.value = String(prefill.message || "");
+  if (inquiryMetaInput) inquiryMetaInput.value = String(prefill.meta || "");
+  inquiryModal.hidden = false;
+  updateBodyLock();
+  inquiryNameInput?.focus();
+};
+
+const closeInquiryModal = () => {
+  if (!inquiryModal) return;
+  inquiryModal.hidden = true;
+  inquiryForm?.reset();
+  updateBodyLock();
+};
+
+const buildInquiryMailto = () => {
+  const name = String(inquiryNameInput?.value || "").trim();
+  const email = String(inquiryEmailInput?.value || "").trim();
+  const subject = String(inquirySubjectInput?.value || "").trim();
+  const meta = String(inquiryMetaInput?.value || "").trim();
+  const message = String(inquiryMessageInput?.value || "").trim();
+
+  const mailSubject = `[Monomate 의뢰] ${subject}`;
+  const body = [
+    `이름: ${name}`,
+    `회신 이메일: ${email}`,
+    meta ? `예산 / 일정: ${meta}` : "",
+    "",
+    "[의뢰 내용]",
+    message,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return `mailto:monomate@bymonomate.com?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(body)}`;
 };
 
 const hasAdminPassword = () => true;
@@ -2896,6 +2904,23 @@ shareModal?.addEventListener("click", (event) => {
   if (event.target === shareModal) closeShareModal();
 });
 
+inquiryOpenButton?.addEventListener("click", () => {
+  openInquiryModal();
+});
+
+inquiryModalClose?.addEventListener("click", closeInquiryModal);
+inquiryCancelButton?.addEventListener("click", closeInquiryModal);
+inquiryModal?.addEventListener("click", (event) => {
+  if (event.target === inquiryModal) closeInquiryModal();
+});
+
+inquiryForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const mailto = buildInquiryMailto();
+  window.location.href = mailto;
+  closeInquiryModal();
+});
+
 adminModalClose?.addEventListener("click", closeAdminModal);
 adminModal?.addEventListener("click", (event) => {
   if (event.target === adminModal) closeAdminModal();
@@ -3011,6 +3036,7 @@ document.addEventListener("keydown", (event) => {
     closeLightbox();
     closeBrandModal();
     closeShareModal();
+    closeInquiryModal();
     closeAdminModal();
   }
 });
@@ -3018,7 +3044,6 @@ document.addEventListener("keydown", (event) => {
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) {
     void fetchRemoteState({ silent: true });
-    void fetchRemoteInquiries({ silent: true });
   }
 });
 
@@ -3029,5 +3054,3 @@ if (config.viewer_role === "admin" && !isAdminAuthenticated()) {
 setViewerRole(config.viewer_role || "client");
 void fetchRemoteState();
 startRemoteSync();
-void fetchRemoteInquiries();
-startInquirySync();

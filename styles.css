@@ -2080,6 +2080,57 @@ body[data-viewer-role="client"] #about-page-menu {
   background: #f7f7f7;
 }
 
+.schedule-dialog.inquiry-dialog {
+  width: min(100%, 620px);
+  min-height: auto;
+}
+
+.inquiry-modal-body {
+  display: grid;
+  gap: 14px;
+  padding: 6px 30px 30px;
+}
+
+.inquiry-modal-copy {
+  margin: 0;
+  color: #536471;
+  line-height: 1.7;
+}
+
+.inquiry-field {
+  display: grid;
+  gap: 8px;
+}
+
+.inquiry-field span {
+  color: #536471;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.inquiry-field input,
+.inquiry-field textarea {
+  width: 100%;
+  border: 1px solid rgba(15, 20, 25, 0.12);
+  border-radius: 16px;
+  background: #f7f7f7;
+  color: #0f1419;
+  padding: 12px 14px;
+  font: inherit;
+}
+
+.inquiry-field textarea {
+  min-height: 180px;
+  resize: vertical;
+}
+
+.inquiry-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
 .schedule-dialog.admin-dialog {
   width: min(100%, 460px);
   min-height: auto;
