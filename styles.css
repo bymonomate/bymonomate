@@ -101,6 +101,7 @@ select:focus {
 
 .sidebar-left {
   z-index: 90;
+  padding-top: 5px;
 }
 
 .sidebar-right {
@@ -2888,15 +2889,20 @@ body.is-mobile-drawer-open .mobile-drawer {
 .sidebar-right {
   display: grid;
   gap: 18px;
+  align-content: start;
 }
 
 .sidebar-top-tools {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  min-height: 74px;
+  padding: 0 8px 0 0;
 }
 
 .desktop-language-switch {
   margin-top: 0;
+  align-self: center;
 }
 
 .sidebar-right[hidden] {
@@ -3985,5 +3991,43 @@ body.is-mobile-drawer-open .mobile-drawer {
 
   .mobile-bottom-nav {
     padding-inline: 8px;
+  }
+}
+
+@media (max-width: 860px) {
+  body .app-shell,
+  body .app-shell.is-home-view {
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    max-width: none !important;
+    gap: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  body .sidebar-left,
+  body .sidebar-right,
+  body .timeline-header-tools,
+  body .mobile-language-switch {
+    display: none !important;
+  }
+
+  body .timeline {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  body .mobile-topbar {
+    display: flex !important;
+  }
+
+  body .mobile-drawer,
+  body .mobile-drawer-backdrop {
+    display: block;
+  }
+
+  body .mobile-bottom-nav {
+    display: grid !important;
   }
 }
