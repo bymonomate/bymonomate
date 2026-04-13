@@ -86,10 +86,6 @@
         <div class="viewer-mode-switch" id="viewer-mode-switch" aria-label="보기 모드 전환">
           <button class="viewer-mode-button" type="button" data-viewer-role="admin" aria-pressed="false">관리자</button>
         </div>
-        <div class="language-switch" id="language-switch" aria-label="언어 전환">
-          <button class="language-button is-active" type="button" data-language="ko" aria-pressed="true">KR</button>
-          <button class="language-button" type="button" data-language="en" aria-pressed="false">EN</button>
-        </div>
       </aside>
 
       <main class="timeline" id="top">
@@ -97,6 +93,12 @@
         <header class="timeline-header">
           <button class="timeline-tab is-active" type="button" data-filter="latest" data-ui-key="tab_latest">최신</button>
           <button class="timeline-tab" type="button" data-filter="all" data-ui-key="tab_all">전체</button>
+          <div class="timeline-header-tools">
+            <div class="language-switch mobile-language-switch" aria-label="언어 전환">
+              <button class="language-button is-active" type="button" data-language="ko" aria-pressed="true">KR</button>
+              <button class="language-button" type="button" data-language="en" aria-pressed="false">EN</button>
+            </div>
+          </div>
         </header>
 
         <section class="composer-card reveal" id="composer">
@@ -431,6 +433,12 @@
       </main>
 
       <aside class="sidebar-right" id="contact">
+        <div class="sidebar-top-tools">
+          <div class="language-switch desktop-language-switch" aria-label="언어 전환">
+            <button class="language-button is-active" type="button" data-language="ko" aria-pressed="true">KR</button>
+            <button class="language-button" type="button" data-language="en" aria-pressed="false">EN</button>
+          </div>
+        </div>
         <section class="profile-card request-card reveal">
           <h3 data-ui-key="sidebar_inquiry_title">프로젝트 의뢰</h3>
           <p class="profile-bio" data-ui-key="sidebar_inquiry_body">브랜딩, 콘텐츠, 디지털 제품 제작 의뢰를 받고 있습니다. 필요한 작업 범위와 일정을 남겨주세요.</p>
