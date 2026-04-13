@@ -9,6 +9,7 @@ const SUPABASE_PUBLIC_URL = "https://dhmufzkbgjexlgmrpmih.supabase.co";
 const SUPABASE_PUBLIC_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRobXVmemtiZ2pleGxnbXJwbWloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5MTEzNjEsImV4cCI6MjA5MTQ4NzM2MX0.xw1US9BvLe36eigLPn8Gr2YDY59kXMgsTrvnb05otXw";
 const POST_MEDIA_BUCKET = "post-media";
+const LANGUAGE_KEY = "monomate-language";
 
 const DEFAULT_POSTS = [
   {
@@ -181,6 +182,340 @@ const DEFAULT_CONFIG = {
   posts: DEFAULT_POSTS,
 };
 
+const UI_TRANSLATIONS = {
+  ko: {
+    nav_home: "홈",
+    nav_about: "About",
+    nav_search: "검색",
+    nav_settings: "설정",
+    brand_logo_edit: "로고 이미지 수정",
+    tab_latest: "최신",
+    tab_all: "전체",
+    composer_placeholder: "무슨 일이 일어나고 있나요? 프로젝트 이야기와 #해시태그를 함께 적어보세요.",
+    composer_media: "이미지 또는 영상",
+    composer_gif: "GIF",
+    composer_emoji: "이모티콘",
+    composer_schedule: "예약하기",
+    composer_submit: "게시하기",
+    privacy_public: "전체 공개",
+    privacy_private: "비공개",
+    privacy_private_post: "비공개 게시",
+    close: "닫기",
+    emoji_search: "이모티콘 검색하기",
+    search_title: "검색",
+    search_description: "프로젝트 키워드, 기술 스택, 메모를 탐색하는 화면입니다.",
+    search_input: "브랜딩, SNS, 코딩 같은 키워드를 찾아보세요.",
+    search_recommended_title: "추천 검색어",
+    search_recommended_note: "설정에서 직접 수정할 수 있습니다.",
+    settings_title: "설정",
+    settings_search: "설정 검색하기",
+    settings_panel_account: "계정",
+    settings_panel_search: "검색",
+    settings_panel_sales: "판매 리스트",
+    settings_account_title: "계정",
+    settings_account_description: "브랜드 운영 정보와 기본 공개 상태를 확인하세요.",
+    settings_account_visibility_title: "프로필 공개",
+    settings_account_visibility_body: "브랜드 소개와 주요 프로젝트를 모두 공개 상태로 유지합니다.",
+    visibility_public: "공개",
+    settings_account_contact_title: "문의 응대",
+    settings_account_contact_body: "프로젝트 의뢰 버튼을 통해 메일 문의를 바로 받을 수 있습니다.",
+    mail_label: "메일",
+    settings_account_schedule_title: "예약 게시물",
+    settings_account_schedule_body: "설정된 예약 시간은 한국 표준시 기준으로 게시됩니다.",
+    settings_search_keywords_title: "해시태그 추천 수정",
+    settings_search_keywords_body: "쉼표로 구분해서 입력하면 검색 화면과 우측 해시태그 추천이 함께 바뀝니다.",
+    settings_sales_title: "판매 리스트 관리",
+    settings_sales_body: "오른쪽 판매 박스를 준비 중 상태로 둘지, 실제 리스트를 노출할지 관리합니다.",
+    settings_sales_toggle: "판매 리스트 노출",
+    settings_sales_hint: "끄면 오른쪽 판매 박스에는 `준비 중` 상태만 표시됩니다.",
+    product_1: "상품 1",
+    product_2: "상품 2",
+    product_3: "상품 3",
+    product_name: "상품명",
+    description: "설명",
+    sales_link: "판매 링크",
+    on_sale: "판매 중",
+    save: "저장",
+    sidebar_inquiry_title: "프로젝트 의뢰",
+    sidebar_inquiry_body: "브랜딩, 콘텐츠, 디지털 제품 제작 의뢰를 받고 있습니다. 필요한 작업 범위와 일정을 남겨주세요.",
+    sidebar_inquiry_button: "프로젝트 의뢰하기",
+    sidebar_hashtag_title: "해시태그 추천",
+    sidebar_sales_title: "판매 리스트",
+    schedule_title: "예약하기",
+    schedule_summary_default: "전송 일정을 선택하세요.",
+    confirm: "확인",
+    brand_logo_title: "로고 이미지 수정",
+    brand_logo_copy: "이미지 파일을 선택하면 좌측 로고와 게시글 프로필에 바로 반영됩니다.",
+    select_image: "이미지 선택",
+    share_title: "공유하기",
+    share_copy_default: "게시물 링크를 복사하거나 SNS 채널로 바로 공유할 수 있습니다.",
+    copy_link: "링크 복사",
+    inquiry_title: "프로젝트 의뢰",
+    inquiry_copy: "내용을 입력하면 기본 메일 앱이 열리고, `monomate@bymonomate.com` 앞으로 보낼 문의 메일이 자동으로 채워집니다.",
+    inquiry_name: "이름",
+    inquiry_name_placeholder: "브랜드명 또는 담당자명",
+    inquiry_email: "회신 받을 이메일",
+    inquiry_email_placeholder: "name@example.com",
+    inquiry_subject: "프로젝트 제목",
+    inquiry_subject_placeholder: "브랜딩 / 랜딩페이지 / 콘텐츠 제작 등",
+    inquiry_meta: "예산 / 일정",
+    inquiry_meta_placeholder: "예산 범위, 희망 일정, 마감일 등",
+    inquiry_message: "의뢰 내용",
+    inquiry_message_placeholder: "필요한 작업 범위와 참고 레퍼런스, 전달하고 싶은 내용을 적어주세요.",
+    inquiry_submit: "메일로 문의하기",
+    cancel: "취소",
+    admin_title: "관리자 모드",
+    admin_copy: "관리자 비밀번호를 입력하세요.",
+    search_prompt_title: "검색어를 입력하거나 추천 검색어를 눌러보세요.",
+    search_prompt_body: "게시물, 판매 항목, 키워드에 맞는 결과를 바로 찾아드립니다.",
+    search_empty_title: "일치하는 결과가 없습니다.",
+    search_empty_body: "다른 검색어를 입력하거나 추천 검색어를 다시 선택해보세요.",
+    search_result_post: "게시물",
+    search_result_sale: "판매 항목",
+    open_post: "게시물 보기",
+    purchase_page: "구매 페이지",
+    contact_action: "문의하기",
+    sales_coming_soon: "준비 중",
+    sales_coming_soon_body: "판매 가능한 디지털 다운로드와 굿즈 리스트를 곧 업데이트할 예정입니다.",
+    buy_now: "구매하기",
+    comment: "댓글",
+    share: "공유",
+    like: "좋아요",
+    comment_placeholder: "댓글을 입력하세요.",
+    comment_submit: "댓글쓰기",
+    edit_post: "게시물 수정",
+    delete_post: "게시물 삭제",
+    upload_error: "미디어 업로드에 실패했습니다. Supabase Storage 버킷과 업로드 정책을 확인해주세요.",
+    uploading: "업로드 중...",
+    schedule_prefix: "예약",
+    schedule_suffix: "전송 예정",
+    share_email_subject: "Monomate 게시물 공유",
+    share_copied: "링크가 복사되었습니다.",
+    share_copy_failed: "브라우저에서 링크 복사를 허용하지 않아 직접 복사해주세요.",
+    admin_on: "관리자 ON",
+    admin_off: "관리자",
+    admin_password_hint: "Vercel 환경변수에 설정한 관리자 비밀번호를 입력하세요.",
+    admin_password_short: "비밀번호는 4자 이상으로 입력해주세요.",
+    admin_password_invalid: "비밀번호가 올바르지 않습니다.",
+    sales_inquiry_subject: "판매 문의",
+    sales_inquiry_message: "구매 가능 여부와 상세 정보를 알려주세요.",
+    inquiry_mail_subject_prefix: "[Monomate 의뢰]",
+    inquiry_mail_name: "이름",
+    inquiry_mail_email: "회신 이메일",
+    inquiry_mail_meta: "예산 / 일정",
+    inquiry_mail_body_label: "[의뢰 내용]",
+    about_edit_open: "페이지 수정",
+    about_editor_title: "아코디언 편집",
+    about_editor_note: "어바웃 페이지 아코디언 제목과 내용을 바로 수정합니다. 이미지 권장 비율은 4:5이며, 880x1100 또는 1080x1350 크기를 추천합니다.",
+    about_intro_label: "타이틀 옆 문구",
+    about_item_1_title_label: "항목 1 제목",
+    about_item_1_body_label: "항목 1 내용",
+    about_item_1_image_label: "항목 1 이미지 URL",
+    about_item_2_title_label: "항목 2 제목",
+    about_item_2_body_label: "항목 2 내용",
+    about_item_2_image_label: "항목 2 이미지 URL",
+    about_item_3_title_label: "항목 3 제목",
+    about_item_3_body_label: "항목 3 내용",
+    about_item_3_image_label: "항목 3 이미지 URL",
+    about_item_4_title_label: "항목 4 제목",
+    about_item_4_body_label: "항목 4 내용",
+    about_item_4_image_label: "항목 4 이미지 URL",
+    about_item_5_title_label: "항목 5 제목",
+    about_item_5_body_label: "항목 5 내용",
+    about_item_5_image_label: "항목 5 이미지 URL",
+    about_closing_label: "하단 문구",
+    upload_local_image: "로컬 이미지 업로드",
+    schedule_month: "월",
+    schedule_day: "일",
+    schedule_year: "년",
+    schedule_hour: "시",
+    schedule_minute: "분",
+    schedule_timezone: "시간대",
+    schedule_timezone_kst: "한국 표준시",
+  },
+  en: {
+    nav_home: "Home",
+    nav_about: "About",
+    nav_search: "Search",
+    nav_settings: "Settings",
+    brand_logo_edit: "Edit logo",
+    tab_latest: "Latest",
+    tab_all: "All",
+    composer_placeholder: "What’s happening? Share your project story with #hashtags.",
+    composer_media: "Image or video",
+    composer_gif: "GIF",
+    composer_emoji: "Emoji",
+    composer_schedule: "Schedule",
+    composer_submit: "Post",
+    privacy_public: "Public",
+    privacy_private: "Private",
+    privacy_private_post: "Private post",
+    close: "Close",
+    emoji_search: "Search emojis",
+    search_title: "Search",
+    search_description: "Browse project keywords, tech stack, and notes.",
+    search_input: "Search keywords like branding, social, or coding.",
+    search_recommended_title: "Recommended hashtags",
+    search_recommended_note: "You can edit these in Settings.",
+    settings_title: "Settings",
+    settings_search: "Search settings",
+    settings_panel_account: "Account",
+    settings_panel_search: "Search",
+    settings_panel_sales: "Sales",
+    settings_account_title: "Account",
+    settings_account_description: "Check brand details and default visibility.",
+    settings_account_visibility_title: "Profile visibility",
+    settings_account_visibility_body: "Keep the brand introduction and key projects public.",
+    visibility_public: "Public",
+    settings_account_contact_title: "Inquiry response",
+    settings_account_contact_body: "Project inquiries can be received directly by email.",
+    mail_label: "Mail",
+    settings_account_schedule_title: "Scheduled posts",
+    settings_account_schedule_body: "Scheduled times are published in Korea Standard Time.",
+    settings_search_keywords_title: "Edit hashtag suggestions",
+    settings_search_keywords_body: "Separate with commas to update both search recommendations and the right-side hashtag list.",
+    settings_sales_title: "Manage sales list",
+    settings_sales_body: "Control whether the right sales box stays in coming-soon mode or shows actual items.",
+    settings_sales_toggle: "Show sales list",
+    settings_sales_hint: "If turned off, the right sales box only shows a coming-soon state.",
+    product_1: "Product 1",
+    product_2: "Product 2",
+    product_3: "Product 3",
+    product_name: "Product name",
+    description: "Description",
+    sales_link: "Sales link",
+    on_sale: "On sale",
+    save: "Save",
+    sidebar_inquiry_title: "Project inquiry",
+    sidebar_inquiry_body: "Open for branding, content, and digital product inquiries. Share your scope and timeline.",
+    sidebar_inquiry_button: "Start inquiry",
+    sidebar_hashtag_title: "Recommended hashtags",
+    sidebar_sales_title: "Sales list",
+    schedule_title: "Schedule",
+    schedule_summary_default: "Choose when to send this post.",
+    confirm: "Confirm",
+    brand_logo_title: "Update logo image",
+    brand_logo_copy: "Choose an image file to update the left logo and post avatar instantly.",
+    select_image: "Choose image",
+    share_title: "Share",
+    share_copy_default: "Copy the post link or share it directly to social channels.",
+    copy_link: "Copy link",
+    inquiry_title: "Project inquiry",
+    inquiry_copy: "Fill this out and your default mail app will open with a draft addressed to `monomate@bymonomate.com`.",
+    inquiry_name: "Name",
+    inquiry_name_placeholder: "Brand name or contact name",
+    inquiry_email: "Reply email",
+    inquiry_email_placeholder: "name@example.com",
+    inquiry_subject: "Project title",
+    inquiry_subject_placeholder: "Branding / landing page / content production",
+    inquiry_meta: "Budget / timeline",
+    inquiry_meta_placeholder: "Budget range, ideal schedule, deadline, etc.",
+    inquiry_message: "Inquiry details",
+    inquiry_message_placeholder: "Describe the scope, references, and any context you want to share.",
+    inquiry_submit: "Send by email",
+    cancel: "Cancel",
+    admin_title: "Admin mode",
+    admin_copy: "Enter the admin password.",
+    search_prompt_title: "Type a keyword or tap a recommended hashtag.",
+    search_prompt_body: "Find matching posts, sales items, and keywords instantly.",
+    search_empty_title: "No matching results",
+    search_empty_body: "Try another keyword or choose a recommended hashtag again.",
+    search_result_post: "Post",
+    search_result_sale: "Sales item",
+    open_post: "Open post",
+    purchase_page: "Purchase page",
+    contact_action: "Contact",
+    sales_coming_soon: "Coming soon",
+    sales_coming_soon_body: "Digital downloads and goods will be added here soon.",
+    buy_now: "Buy now",
+    comment: "Comment",
+    share: "Share",
+    like: "Like",
+    comment_placeholder: "Write a reply.",
+    comment_submit: "Reply",
+    edit_post: "Edit post",
+    delete_post: "Delete post",
+    upload_error: "Media upload failed. Check the Supabase Storage bucket and upload policy.",
+    uploading: "Uploading...",
+    schedule_prefix: "Scheduled",
+    schedule_suffix: "scheduled to send",
+    share_email_subject: "Share a Monomate post",
+    share_copied: "Link copied.",
+    share_copy_failed: "Clipboard access was blocked. Please copy the link manually.",
+    admin_on: "Admin ON",
+    admin_off: "Admin",
+    admin_password_hint: "Enter the admin password configured in your Vercel environment variables.",
+    admin_password_short: "Password must be at least 4 characters.",
+    admin_password_invalid: "The password is incorrect.",
+    sales_inquiry_subject: "Sales inquiry",
+    sales_inquiry_message: "Please let me know if this item is available and share the details.",
+    inquiry_mail_subject_prefix: "[Monomate Inquiry]",
+    inquiry_mail_name: "Name",
+    inquiry_mail_email: "Reply email",
+    inquiry_mail_meta: "Budget / timeline",
+    inquiry_mail_body_label: "[Inquiry details]",
+    about_edit_open: "Edit page",
+    about_editor_title: "Accordion editor",
+    about_editor_note: "Edit the About accordion titles and copy directly. Recommended image ratio is 4:5, ideally 880x1100 or 1080x1350.",
+    about_intro_label: "Intro beside title",
+    about_item_1_title_label: "Section 1 title",
+    about_item_1_body_label: "Section 1 body",
+    about_item_1_image_label: "Section 1 image URL",
+    about_item_2_title_label: "Section 2 title",
+    about_item_2_body_label: "Section 2 body",
+    about_item_2_image_label: "Section 2 image URL",
+    about_item_3_title_label: "Section 3 title",
+    about_item_3_body_label: "Section 3 body",
+    about_item_3_image_label: "Section 3 image URL",
+    about_item_4_title_label: "Section 4 title",
+    about_item_4_body_label: "Section 4 body",
+    about_item_4_image_label: "Section 4 image URL",
+    about_item_5_title_label: "Section 5 title",
+    about_item_5_body_label: "Section 5 body",
+    about_item_5_image_label: "Section 5 image URL",
+    about_closing_label: "Closing copy",
+    upload_local_image: "Upload local image",
+    schedule_month: "Month",
+    schedule_day: "Day",
+    schedule_year: "Year",
+    schedule_hour: "Hour",
+    schedule_minute: "Minute",
+    schedule_timezone: "Timezone",
+    schedule_timezone_kst: "Korea Standard Time",
+  },
+};
+
+const CONTENT_TRANSLATIONS = {
+  en: {
+    about_hero_intro: "We make design-led work that gets used in the real world.",
+    service_2_body:
+      "Monomate is a creative studio that starts from design and expands into planning and execution.\n\nWe do not stop at visuals that simply look good. We build outcomes that are actually used, sold, and put into motion.\n\nFrom brands and content to digital products, we focus on turning ideas into tangible forms.",
+    service_3_body:
+      "With a design practice at the core, we have worked across branding, content, space, and digital experiences.\n\nWe value not only visual polish, but also clarity, structure, and real usability.",
+    service_4_body:
+      "• Brand design and branding\n• Content planning and visual production\n• Landing pages and digital product creation\n• Digital files such as templates and toolkits\n• Goods design and sales",
+    service_5_body:
+      "Monomate does not stop at design that only looks good.\n\n• It should be ready to use\n• It should be genuinely useful\n• And it should lead to real value\n\nThat is why every project is designed around execution and outcomes.",
+    service_6_body:
+      "This site also offers digital downloads and goods created by Monomate.\n\nFrom branding templates and design resources to practical tools you can use right away, the lineup will continue to grow.",
+    service_7_body:
+      "Monomate works with you through the process of turning ideas into reality.\n\nEven a small start should lead to a real outcome.",
+  },
+};
+
+const DEFAULT_SEARCH_KEYWORDS_EN = [
+  "branding",
+  "social",
+  "coding",
+  "design",
+  "marketing",
+  "templates",
+  "digital products",
+  "landing page",
+  "content strategy",
+  "downloads",
+];
+
 const EMOJI_LIBRARY = [
   { emoji: "😀", label: "grinning smile happy 웃음", category: "smileys" },
   { emoji: "😃", label: "smile happy 웃음", category: "smileys" },
@@ -244,7 +579,40 @@ const EMOJI_CATEGORY_LABELS = {
   flags: "깃발",
 };
 
+const EMOJI_CATEGORY_LABELS_EN = {
+  smileys: "Smileys & people",
+  animals: "Animals & nature",
+  food: "Food & drink",
+  activity: "Activity",
+  travel: "Travel & places",
+  objects: "Objects",
+  symbols: "Symbols",
+  flags: "Flags",
+};
+
 const cloneDefault = () => JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+
+const getStoredLanguage = () => {
+  try {
+    const stored = localStorage.getItem(LANGUAGE_KEY);
+    return stored === "en" ? "en" : "ko";
+  } catch (error) {
+    return "ko";
+  }
+};
+
+let currentLanguage = getStoredLanguage();
+
+const t = (key) => UI_TRANSLATIONS[currentLanguage]?.[key] || UI_TRANSLATIONS.ko[key] || key;
+
+const getLocalizedTextValue = (key, nextConfig) => {
+  if (currentLanguage === "en" && CONTENT_TRANSLATIONS.en[key]) {
+    return CONTENT_TRANSLATIONS.en[key];
+  }
+  const rawValue = nextConfig[key];
+  const fallbackValue = DEFAULT_CONFIG[key];
+  return String(rawValue || "").trim() || String(fallbackValue || "");
+};
 
 const createClientSessionId = () =>
   `client-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -618,6 +986,7 @@ const aboutEditCancel = document.querySelector("#about-edit-cancel");
 const notificationsList = document.querySelector("#notifications-list");
 const searchViewInput = document.querySelector("#search-view-input");
 const searchKeywordList = document.querySelector("#search-keyword-list");
+const sidebarHashtagList = document.querySelector("#sidebar-hashtag-list");
 const searchResults = document.querySelector("#search-results");
 const settingsSearchInput = document.querySelector("#settings-search-input");
 const settingsSearchForm = document.querySelector("#settings-search-form");
@@ -628,6 +997,7 @@ const settingsSections = document.querySelectorAll("[data-settings-section]");
 const salesList = document.querySelector("#sales-list");
 const openViewButtons = document.querySelectorAll("[data-open-view]");
 const viewerModeButtons = document.querySelectorAll("[data-viewer-role]");
+const languageButtons = document.querySelectorAll("[data-language]");
 const messageList = document.querySelector("#message-list");
 const messageEmptyList = document.querySelector("#message-empty-list");
 const messageThread = document.querySelector("#message-thread");
@@ -805,12 +1175,69 @@ const applyTextConfig = (nextConfig) => {
   document.querySelectorAll("[data-text-key]").forEach((element) => {
     const key = element.dataset.textKey;
     if (key in nextConfig) {
-      const rawValue = nextConfig[key];
-      const fallbackValue = DEFAULT_CONFIG[key];
-      const value = String(rawValue || "").trim() || String(fallbackValue || "");
-      element.textContent = value;
+      element.textContent = getLocalizedTextValue(key, nextConfig);
     }
   });
+};
+
+const updateDocumentMetadata = () => {
+  const title = currentLanguage === "en" ? "Monomate | Creative Studio" : "Monomate | 모노메이트";
+  const description =
+    currentLanguage === "en"
+      ? "Monomate is a creative studio building design-led outcomes across branding, content, and digital products."
+      : "Monomate(모노메이트)는 디자인을 기반으로 실행되는 결과물을 만드는 크리에이티브 스튜디오입니다. 브랜딩, 콘텐츠, 디지털 제품, 템플릿과 굿즈까지 실제로 작동하는 결과물을 만듭니다.";
+  document.documentElement.lang = currentLanguage;
+  document.title = title;
+  const descriptionMeta = document.querySelector('meta[name="description"]');
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  const ogDescription = document.querySelector('meta[property="og:description"]');
+  const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+  const twitterDescription = document.querySelector('meta[name="twitter:description"]');
+  if (descriptionMeta) descriptionMeta.setAttribute("content", description);
+  if (ogTitle) ogTitle.setAttribute("content", title);
+  if (ogDescription) ogDescription.setAttribute("content", description);
+  if (twitterTitle) twitterTitle.setAttribute("content", title);
+  if (twitterDescription) twitterDescription.setAttribute("content", description);
+};
+
+const updateStaticTranslations = () => {
+  document.querySelectorAll("[data-ui-key]").forEach((element) => {
+    const key = element.dataset.uiKey;
+    if (!key) return;
+    element.textContent = t(key);
+  });
+
+  document.querySelectorAll("[data-placeholder-key]").forEach((element) => {
+    const key = element.dataset.placeholderKey;
+    if (!key || !("placeholder" in element)) return;
+    element.setAttribute("placeholder", t(key));
+  });
+
+  document.querySelectorAll("[data-aria-label-key]").forEach((element) => {
+    const key = element.dataset.ariaLabelKey;
+    if (!key) return;
+    element.setAttribute("aria-label", t(key));
+  });
+
+  document.querySelectorAll("[data-nav-tooltip-key]").forEach((element) => {
+    const key = element.dataset.navTooltipKey;
+    if (!key) return;
+    element.dataset.navTooltip = t(key);
+  });
+
+  document.querySelectorAll("[data-tooltip-key]").forEach((element) => {
+    const key = element.dataset.tooltipKey;
+    if (!key) return;
+    element.dataset.tooltip = t(key);
+  });
+
+  languageButtons.forEach((button) => {
+    const isActive = button.dataset.language === currentLanguage;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+
+  updateDocumentMetadata();
 };
 
 const applyImageToElement = (element, value) => {
@@ -847,28 +1274,36 @@ const renderNotifications = () => {
   if (!items.length) {
     notificationsList.innerHTML = `
       <article class="notice-card notice-empty">
-        <strong>새로운 알림이 없습니다</strong>
+        <strong>${escapeHtml(currentLanguage === "en" ? "No new notifications." : "새로운 알림이 없습니다")}</strong>
       </article>
     `;
     return;
   }
 
-  const labels = {
-    new_post: "새 게시물 등록",
-    new_chat: "새로운 채팅",
-    share: "공유",
-    like: "하트",
-  };
+  const labels =
+    currentLanguage === "en"
+      ? {
+          new_post: "New post",
+          new_chat: "New inquiry",
+          share: "Share",
+          like: "Like",
+        }
+      : {
+          new_post: "새 게시물 등록",
+          new_chat: "새로운 채팅",
+          share: "공유",
+          like: "하트",
+        };
 
   notificationsList.innerHTML = items
     .map((item) => {
       const type = String(item.type || "");
-      const title = String(item.title || labels[type] || "알림");
+      const title = String(item.title || labels[type] || (currentLanguage === "en" ? "Notification" : "알림"));
       const body = String(item.body || "");
-      const time = String(item.time || "방금 전");
+      const time = String(item.time || (currentLanguage === "en" ? "Just now" : "방금 전"));
       return `
         <article class="notice-card">
-          <span>${labels[type] || "알림"}</span>
+          <span>${labels[type] || (currentLanguage === "en" ? "Notification" : "알림")}</span>
           <strong>${escapeHtml(title)}</strong>
           <p>${escapeHtml(body)}</p>
           <time>${escapeHtml(time)}</time>
@@ -880,8 +1315,19 @@ const renderNotifications = () => {
 
 const getSearchKeywords = () =>
   Array.isArray(config.search_keywords)
-    ? config.search_keywords.map((item) => String(item).trim()).filter(Boolean)
-    : [];
+    ? (() => {
+        const keywords = config.search_keywords.map((item) => String(item).trim()).filter(Boolean);
+        const isDefaultKoreanList =
+          keywords.length === DEFAULT_CONFIG.search_keywords.length &&
+          keywords.every((item, index) => item === DEFAULT_CONFIG.search_keywords[index]);
+        if (currentLanguage === "en" && isDefaultKoreanList) {
+          return DEFAULT_SEARCH_KEYWORDS_EN;
+        }
+        return keywords;
+      })()
+    : currentLanguage === "en"
+      ? DEFAULT_SEARCH_KEYWORDS_EN
+      : [];
 
 const getSalesItems = () =>
   Array.isArray(config.sales_items)
@@ -906,9 +1352,8 @@ const getConversations = () =>
     : [];
 
 const renderSearchKeywords = () => {
-  if (!searchKeywordList) return;
   const items = getSearchKeywords();
-  searchKeywordList.innerHTML = items
+  const markup = items
     .map(
       (keyword) =>
         `<button class="search-keyword-chip" type="button" data-search-keyword="${escapeHtml(keyword)}">#${escapeHtml(
@@ -916,6 +1361,14 @@ const renderSearchKeywords = () => {
         )}</button>`
     )
     .join("");
+
+  if (searchKeywordList) {
+    searchKeywordList.innerHTML = markup;
+  }
+
+  if (sidebarHashtagList) {
+    sidebarHashtagList.innerHTML = markup;
+  }
 };
 
 const getSearchResults = (query) => {
@@ -929,7 +1382,7 @@ const getSearchResults = (query) => {
       type: "post",
       title: formatDate(post.date),
       body: post.content,
-      action: "게시물 보기",
+      action: t("open_post"),
       postId: post.id,
     }));
 
@@ -941,7 +1394,7 @@ const getSearchResults = (query) => {
           type: "sale",
           title: item.title,
           body: item.body,
-          action: item.available ? "구매 페이지" : "문의하기",
+          action: item.available ? t("purchase_page") : t("contact_action"),
           url: item.url,
         }))
     : [];
@@ -961,8 +1414,8 @@ const renderSearchResults = (query = "") => {
   if (!String(query || "").trim()) {
     searchResults.innerHTML = `
       <article class="search-result-empty">
-        <strong>검색어를 입력하거나 추천 검색어를 눌러보세요.</strong>
-        <p>게시물, 판매 항목, 키워드에 맞는 결과를 바로 찾아드립니다.</p>
+        <strong>${t("search_prompt_title")}</strong>
+        <p>${t("search_prompt_body")}</p>
       </article>
     `;
     return;
@@ -971,8 +1424,8 @@ const renderSearchResults = (query = "") => {
   if (!results.length) {
     searchResults.innerHTML = `
       <article class="search-result-empty">
-        <strong>일치하는 결과가 없습니다.</strong>
-        <p>다른 검색어를 입력하거나 추천 검색어를 다시 선택해보세요.</p>
+        <strong>${t("search_empty_title")}</strong>
+        <p>${t("search_empty_body")}</p>
       </article>
     `;
     return;
@@ -983,22 +1436,22 @@ const renderSearchResults = (query = "") => {
       if (item.type === "post") {
         return `
           <article class="search-result-card">
-            <span class="search-result-type">게시물</span>
+            <span class="search-result-type">${t("search_result_post")}</span>
             <strong>${escapeHtml(item.title)}</strong>
             <p>${escapeHtml(item.body)}</p>
-            <button class="search-result-action" type="button" data-search-open-post="${escapeHtml(item.postId)}">게시물 보기</button>
+            <button class="search-result-action" type="button" data-search-open-post="${escapeHtml(item.postId)}">${t("open_post")}</button>
           </article>
         `;
       }
 
       return `
         <article class="search-result-card">
-          <span class="search-result-type">판매 항목</span>
+          <span class="search-result-type">${t("search_result_sale")}</span>
           <strong>${escapeHtml(item.title)}</strong>
           <p>${escapeHtml(item.body)}</p>
           ${
             item.url
-              ? `<a class="search-result-action" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">구매 페이지</a>`
+              ? `<a class="search-result-action" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${t("purchase_page")}</a>`
               : `<button class="search-result-action" type="button" data-search-contact="sale-${index}">${escapeHtml(item.action)}</button>`
           }
         </article>
@@ -1014,8 +1467,8 @@ const renderSalesItems = () => {
   if (!isEnabled) {
     salesList.innerHTML = `
       <article class="sales-coming-soon">
-        <strong>준비 중</strong>
-        <p>판매 가능한 디지털 다운로드와 굿즈 리스트를 곧 업데이트할 예정입니다.</p>
+        <strong>${t("sales_coming_soon")}</strong>
+        <p>${t("sales_coming_soon_body")}</p>
       </article>
     `;
     return;
@@ -1032,9 +1485,9 @@ const renderSalesItems = () => {
           ${
             item.available
               ? item.url
-                ? `<a class="sales-item-button" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">구매하기</a>`
-                : `<button class="sales-item-button" type="button" data-sales-contact="${escapeHtml(item.title)}">구매하기</button>`
-              : '<span class="sales-item-state">준비 중</span>'
+                ? `<a class="sales-item-button" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${t("buy_now")}</a>`
+                : `<button class="sales-item-button" type="button" data-sales-contact="${escapeHtml(item.title)}">${t("buy_now")}</button>`
+              : `<span class="sales-item-state">${t("sales_coming_soon")}</span>`
           }
         </article>
       `
@@ -1062,7 +1515,7 @@ const getFilteredConversations = () => {
 const formatMessageTime = (value) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("ko-KR", {
+  return new Intl.DateTimeFormat(currentLanguage === "en" ? "en-US" : "ko-KR", {
     month: "short",
     day: "numeric",
     hour: "numeric",
@@ -1472,7 +1925,7 @@ const setViewerRole = (role) => {
   viewerModeButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.viewerRole === config.viewer_role);
     button.setAttribute("aria-pressed", config.viewer_role === "admin" ? "true" : "false");
-    button.textContent = config.viewer_role === "admin" ? "관리자 ON" : "관리자";
+    button.textContent = config.viewer_role === "admin" ? t("admin_on") : t("admin_off");
   });
   if (!isAdminViewer() && activeView === "settings") {
     activeView = "home";
@@ -1502,8 +1955,8 @@ const setViewerRole = (role) => {
 
 const openSalesInquiry = async (title = "") => {
   openInquiryModal({
-    subject: title ? `[판매 문의] ${title}` : "판매 문의",
-    message: "구매 가능 여부와 상세 정보를 알려주세요.",
+    subject: title ? `[${t("sales_inquiry_subject")}] ${title}` : t("sales_inquiry_subject"),
+    message: t("sales_inquiry_message"),
   });
 };
 
@@ -1561,7 +2014,7 @@ const openPostFromSearch = (postId) => {
 const formatDate = (value) => {
   const date = new Date(`${value}T00:00:00`);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("ko-KR", {
+  return new Intl.DateTimeFormat(currentLanguage === "en" ? "en-US" : "ko-KR", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -1572,7 +2025,7 @@ const formatScheduledDateTime = (value) => {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("ko-KR", {
+  return new Intl.DateTimeFormat(currentLanguage === "en" ? "en-US" : "ko-KR", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -1896,7 +2349,7 @@ const updateComposerMeta = () => {
 
   if (composerScheduleChip) {
     composerScheduleChip.hidden = !scheduleValue;
-    composerScheduleChip.textContent = scheduleValue ? `예약: ${formatScheduledDateTime(scheduleValue)}` : "";
+    composerScheduleChip.textContent = scheduleValue ? `${t("schedule_prefix")}: ${formatScheduledDateTime(scheduleValue)}` : "";
   }
 
   if (composerPrivacyChip) {
@@ -1904,7 +2357,7 @@ const updateComposerMeta = () => {
   }
 
   if (privacyButton) {
-    const tooltip = isPrivate ? "비공개 게시" : "전체 공개";
+    const tooltip = isPrivate ? t("privacy_private_post") : t("privacy_public");
     privacyButton.dataset.tooltip = tooltip;
     privacyButton.setAttribute("aria-label", tooltip);
   }
@@ -1958,7 +2411,7 @@ const updateEditDraftUI = (card, postId) => {
 
   if (scheduleChip) {
     scheduleChip.hidden = !draft.scheduledAt;
-    scheduleChip.textContent = draft.scheduledAt ? `예약: ${formatScheduledDateTime(draft.scheduledAt)}` : "";
+    scheduleChip.textContent = draft.scheduledAt ? `${t("schedule_prefix")}: ${formatScheduledDateTime(draft.scheduledAt)}` : "";
   }
 
   if (metaRow) {
@@ -1968,8 +2421,8 @@ const updateEditDraftUI = (card, postId) => {
   if (privacyButton) {
     const isPrivate = draft.visibility === "private";
     privacyButton.classList.toggle("is-active", isPrivate);
-    privacyButton.dataset.tooltip = isPrivate ? "비공개 게시" : "전체 공개";
-    privacyButton.setAttribute("aria-label", isPrivate ? "비공개 게시" : "전체 공개");
+    privacyButton.dataset.tooltip = isPrivate ? t("privacy_private_post") : t("privacy_public");
+    privacyButton.setAttribute("aria-label", isPrivate ? t("privacy_private_post") : t("privacy_public"));
   }
 };
 
@@ -1992,9 +2445,11 @@ const renderEmojiGrid = () => {
     return matchesCategory && matchesSearch;
   });
 
-  emojiSectionTitle.textContent = EMOJI_CATEGORY_LABELS[emojiCategory] || "이모지";
+  emojiSectionTitle.textContent =
+    (currentLanguage === "en" ? EMOJI_CATEGORY_LABELS_EN[emojiCategory] : EMOJI_CATEGORY_LABELS[emojiCategory]) ||
+    (currentLanguage === "en" ? "Emoji" : "이모지");
   if (!list.length) {
-    emojiGrid.innerHTML = '<p class="emoji-empty">검색 결과가 없습니다.</p>';
+    emojiGrid.innerHTML = `<p class="emoji-empty">${currentLanguage === "en" ? "No matching emojis." : "검색 결과가 없습니다."}</p>`;
     return;
   }
 
@@ -2076,7 +2531,7 @@ const getScheduleDateFromControls = () => {
 
 const updateScheduleSummary = () => {
   if (!scheduleSummary) return;
-  scheduleSummary.textContent = `${formatScheduledDateTime(getScheduleDateFromControls().toISOString())} 전송 예정`;
+  scheduleSummary.textContent = `${formatScheduledDateTime(getScheduleDateFromControls().toISOString())} ${t("schedule_suffix")}`;
 };
 
 const seedScheduleControls = () => {
@@ -2088,7 +2543,11 @@ const seedScheduleControls = () => {
       : composerScheduleInput?.value || "";
   const current = targetValue ? new Date(targetValue) : now;
 
-  fillSelect(scheduleMonth, Array.from({ length: 12 }, (_, index) => index + 1), (value) => `${value}월`);
+  fillSelect(
+    scheduleMonth,
+    Array.from({ length: 12 }, (_, index) => index + 1),
+    (value) => (currentLanguage === "en" ? `${value}` : `${value}월`)
+  );
   fillSelect(scheduleYear, Array.from({ length: 5 }, (_, index) => now.getFullYear() + index));
   fillSelect(scheduleHour, Array.from({ length: 12 }, (_, index) => index + 1));
   fillSelect(scheduleMinute, Array.from({ length: 12 }, (_, index) => index * 5), (value) =>
@@ -2153,7 +2612,7 @@ const openShareModal = (postId) => {
   const payload = getSharePayload(postId);
   if (shareLinkInput) shareLinkInput.value = payload.url;
   if (shareModalCopy) {
-    shareModalCopy.textContent = "게시물 링크를 복사하거나 SNS 채널로 바로 공유할 수 있습니다.";
+    shareModalCopy.textContent = t("share_copy_default");
   }
   if (shareX) {
     shareX.href = `https://twitter.com/intent/tweet?url=${payload.encodedUrl}&text=${payload.encodedText}`;
@@ -2165,7 +2624,7 @@ const openShareModal = (postId) => {
     shareLinkedin.href = `https://www.linkedin.com/sharing/share-offsite/?url=${payload.encodedUrl}`;
   }
   if (shareEmail) {
-    shareEmail.href = `mailto:?subject=${encodeURIComponent("Monomate 게시물 공유")}&body=${payload.encodedText}%0A%0A${payload.encodedUrl}`;
+    shareEmail.href = `mailto:?subject=${encodeURIComponent(t("share_email_subject"))}&body=${payload.encodedText}%0A%0A${payload.encodedUrl}`;
   }
   shareModal.hidden = false;
   updateBodyLock();
@@ -2202,13 +2661,13 @@ const buildInquiryMailto = () => {
   const meta = String(inquiryMetaInput?.value || "").trim();
   const message = String(inquiryMessageInput?.value || "").trim();
 
-  const mailSubject = `[Monomate 의뢰] ${subject}`;
+  const mailSubject = `${t("inquiry_mail_subject_prefix")} ${subject}`;
   const body = [
-    `이름: ${name}`,
-    `회신 이메일: ${email}`,
-    meta ? `예산 / 일정: ${meta}` : "",
+    `${t("inquiry_mail_name")}: ${name}`,
+    `${t("inquiry_mail_email")}: ${email}`,
+    meta ? `${t("inquiry_mail_meta")}: ${meta}` : "",
     "",
-    "[의뢰 내용]",
+    t("inquiry_mail_body_label"),
     message,
   ]
     .filter(Boolean)
@@ -2246,10 +2705,10 @@ const resetAdminModalState = () => {
 
 const syncAdminModalMode = () => {
   if (adminModalCopy) {
-    adminModalCopy.textContent = "Vercel 환경변수에 설정한 관리자 비밀번호를 입력하세요.";
+    adminModalCopy.textContent = t("admin_password_hint");
   }
   if (adminPasswordLabel) {
-    adminPasswordLabel.textContent = "비밀번호";
+    adminPasswordLabel.textContent = currentLanguage === "en" ? "Password" : "비밀번호";
   }
   if (adminPasswordInput) {
     adminPasswordInput.autocomplete = "current-password";
@@ -2261,7 +2720,7 @@ const syncAdminModalMode = () => {
     adminPasswordConfirmInput.required = false;
   }
   if (adminAuthSubmit) {
-    adminAuthSubmit.textContent = "관리자 들어가기";
+    adminAuthSubmit.textContent = currentLanguage === "en" ? "Enter admin mode" : "관리자 들어가기";
   }
 };
 
@@ -2310,15 +2769,15 @@ const createPostMarkup = (post) => `
         <div class="tweet-head-top">
           <div class="tweet-head-name">
             <span data-text-key="profile_name">${config.profile_name}</span>
-            ${post.visibility === "private" ? '<span class="tweet-privacy">비공개</span>' : ""}
+            ${post.visibility === "private" ? `<span class="tweet-privacy">${t("privacy_private")}</span>` : ""}
           </div>
           ${
             isAdminViewer()
               ? `<div class="tweet-menu-wrap">
                   <button class="tweet-menu-button" type="button" data-menu-toggle="${post.id}" aria-label="더보기">${iconSvg.more}</button>
                   <div class="tweet-menu" data-post-menu="${post.id}">
-                    <button class="tweet-menu-item" type="button" data-edit-post="${post.id}">게시물 수정</button>
-                    <button class="tweet-menu-item is-danger" type="button" data-delete-post="${post.id}">게시물 삭제</button>
+                    <button class="tweet-menu-item" type="button" data-edit-post="${post.id}">${t("edit_post")}</button>
+                    <button class="tweet-menu-item is-danger" type="button" data-delete-post="${post.id}">${t("delete_post")}</button>
                   </div>
                 </div>`
               : ""
@@ -2343,39 +2802,39 @@ const createPostMarkup = (post) => `
         <div data-edit-preview-slot="${post.id}">${renderMediaPreviewMarkup(post.mediaItems, post.id)}</div>
         <div class="composer-toolbar tweet-inline-toolbar">
           <div class="composer-icons">
-            <button class="composer-icon-button" type="button" data-edit-action="media" data-post-id="${post.id}" data-tooltip="이미지 또는 영상" aria-label="이미지 또는 영상">
+            <button class="composer-icon-button" type="button" data-edit-action="media" data-post-id="${post.id}" data-tooltip="${t("composer_media")}" aria-label="${t("composer_media")}">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5A2.5 2.5 0 0 1 5.5 3h13A2.5 2.5 0 0 1 21 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 18.5v-13Zm2.5-.5a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-13a.5.5 0 0 0-.5-.5h-13Zm2.75 11.5 2.35-2.82a1 1 0 0 1 1.54.02l1.65 2.02 2.58-3.1a1 1 0 0 1 1.54.03l1.09 1.35V18H6v-1.5l2.25 0ZM8 8.75A1.75 1.75 0 1 1 11.5 8.75 1.75 1.75 0 0 1 8 8.75Z"/></svg>
             </button>
             <button class="composer-icon-button" type="button" data-edit-action="gif" data-post-id="${post.id}" data-tooltip="GIF" aria-label="GIF">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13Zm3.25 2.5h3.25v1.5H8.75v1.25H10v1.5H8.75v1.25h1.75V15H7.25V8Zm4.5 0h1.5v7h-1.5V8Zm2.75 0h4v1.5h-2.5v1.25h2v1.5h-2V15h-1.5V8Z"/></svg>
             </button>
-            <button class="composer-icon-button" type="button" data-edit-action="emoji" data-post-id="${post.id}" data-tooltip="이모티콘" aria-label="이모티콘">
+            <button class="composer-icon-button" type="button" data-edit-action="emoji" data-post-id="${post.id}" data-tooltip="${t("composer_emoji")}" aria-label="${t("composer_emoji")}">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.75A9.25 9.25 0 1 1 2.75 12 9.26 9.26 0 0 1 12 2.75Zm0 2A7.25 7.25 0 1 0 19.25 12 7.26 7.26 0 0 0 12 4.75Zm-2.75 5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm5.5 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Zm-6.04 4.7h6.58a3.75 3.75 0 0 1-6.58 0Z"/></svg>
             </button>
-            <button class="composer-icon-button" type="button" data-edit-action="schedule" data-post-id="${post.id}" data-tooltip="예약하기" aria-label="예약하기">
+            <button class="composer-icon-button" type="button" data-edit-action="schedule" data-post-id="${post.id}" data-tooltip="${t("composer_schedule")}" aria-label="${t("composer_schedule")}">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.75 3a1 1 0 0 1 1 1v1h6.5V4a1 1 0 1 1 2 0v1h.25A2.5 2.5 0 0 1 20 7.5v10A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5v-10A2.5 2.5 0 0 1 6.5 5h.25V4a1 1 0 0 1 1-1Zm9.75 7h-11v7.5a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5V10Zm-11-2h11V7.5a.5.5 0 0 0-.5-.5h-.25v1a1 1 0 1 1-2 0V7h-6.5v1a1 1 0 1 1-2 0V7H6.5a.5.5 0 0 0-.5.5V8Zm5.75 2.75a1 1 0 0 1 1 1v1.84l1.3.75a1 1 0 1 1-1 1.73l-1.8-1.04a1 1 0 0 1-.5-.86v-2.42a1 1 0 0 1 1-1Z"/></svg>
             </button>
-            <button class="composer-icon-button" type="button" data-edit-action="privacy" data-post-id="${post.id}" data-tooltip="${post.visibility === "private" ? "비공개 게시" : "전체 공개"}" aria-label="${post.visibility === "private" ? "비공개 게시" : "전체 공개"}">
+            <button class="composer-icon-button" type="button" data-edit-action="privacy" data-post-id="${post.id}" data-tooltip="${post.visibility === "private" ? t("privacy_private_post") : t("privacy_public")}" aria-label="${post.visibility === "private" ? t("privacy_private_post") : t("privacy_public")}">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c4.97 0 9 4.03 9 9 0 1.97-.63 3.8-1.7 5.29l1.4 1.4-1.41 1.41-15-15L5.7 3.7l2.05 2.05A8.94 8.94 0 0 1 12 3Zm-6.88 4.54 2.22 2.22A3.99 3.99 0 0 0 12 16a3.98 3.98 0 0 0 2.24-.68l1.57 1.57A8.94 8.94 0 0 1 12 18a8.97 8.97 0 0 1-6.88-10.46Zm6.64.4 4.3 4.3c.12-.76-.12-1.56-.72-2.16a3.01 3.01 0 0 0-3.58-.53Zm-.84 1.99 2.93 2.93a1.97 1.97 0 0 1-2.93-2.93Z"/></svg>
             </button>
           </div>
           <div class="tweet-inline-actions">
-            <button class="editor-ghost" type="button" data-edit-cancel="${post.id}">취소</button>
-            <button class="editor-save composer-submit tweet-inline-save" type="button" data-edit-save="${post.id}">저장</button>
+            <button class="editor-ghost" type="button" data-edit-cancel="${post.id}">${t("cancel")}</button>
+            <button class="editor-save composer-submit tweet-inline-save" type="button" data-edit-save="${post.id}">${t("save")}</button>
           </div>
         </div>
       </div>
       ${renderMediaGallery(post.mediaItems, post.id)}
     </div>
     <div class="tweet-actions">
-      <button class="tweet-action" type="button" data-action="comment" data-post-id="${post.id}" aria-label="댓글">${iconSvg.comment}<span>${post.stats.comments}</span></button>
-      <button class="tweet-action" type="button" data-action="share" data-post-id="${post.id}" aria-label="공유">${iconSvg.share}<span>${post.stats.shares}</span></button>
-      <button class="tweet-action" type="button" data-action="like" data-post-id="${post.id}" aria-label="좋아요">${iconSvg.like}<span>${post.stats.likes}</span></button>
+      <button class="tweet-action" type="button" data-action="comment" data-post-id="${post.id}" aria-label="${t("comment")}">${iconSvg.comment}<span>${post.stats.comments}</span></button>
+      <button class="tweet-action" type="button" data-action="share" data-post-id="${post.id}" aria-label="${t("share")}">${iconSvg.share}<span>${post.stats.shares}</span></button>
+      <button class="tweet-action" type="button" data-action="like" data-post-id="${post.id}" aria-label="${t("like")}">${iconSvg.like}<span>${post.stats.likes}</span></button>
     </div>
     <div class="tweet-reply-box">
-      <textarea placeholder="댓글을 입력하세요."></textarea>
+      <textarea placeholder="${t("comment_placeholder")}"></textarea>
       <div class="tweet-reply-actions">
-        <button class="editor-save" type="button" data-reply-submit="${post.id}">댓글쓰기</button>
+        <button class="editor-save" type="button" data-reply-submit="${post.id}">${t("comment_submit")}</button>
       </div>
       ${renderRepliesMarkup(post)}
     </div>
@@ -2464,15 +2923,15 @@ const bindPostActions = () => {
       if (!nextContent) return;
       const draft = ensureEditDraft(id);
       if (!draft) return;
-      const originalLabel = button.textContent || "저장";
-      button.textContent = "업로드 중...";
+      const originalLabel = button.textContent || t("save");
+      button.textContent = t("uploading");
       button.disabled = true;
       let uploadedMediaItems = draft.mediaItems;
       try {
         uploadedMediaItems = await uploadPendingMediaItems(draft.mediaItems);
       } catch (error) {
         console.error("Edit media upload failed", error);
-        window.alert("미디어 업로드에 실패했습니다. Supabase Storage 버킷과 업로드 정책을 확인해주세요.");
+        window.alert(t("upload_error"));
         button.textContent = originalLabel;
         button.disabled = false;
         return;
@@ -2780,6 +3239,7 @@ const bindAboutServices = () => {
 
 const renderConfig = () => {
   document.body.dataset.viewerRole = config.viewer_role;
+  updateStaticTranslations();
   viewerModeButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.viewerRole === config.viewer_role);
   });
@@ -2801,10 +3261,26 @@ const renderConfig = () => {
   }
   openViewButtons.forEach((button) => {
     if (button.dataset.openView === "messages") {
-      button.textContent = isAdminViewer() ? "문의함 열기" : "프로젝트 의뢰하기";
+      button.textContent = isAdminViewer()
+        ? currentLanguage === "en"
+          ? "Open inbox"
+          : "문의함 열기"
+        : t("sidebar_inquiry_button");
     }
   });
   setActiveView(activeView);
+};
+
+const setLanguage = (language) => {
+  currentLanguage = language === "en" ? "en" : "ko";
+  try {
+    localStorage.setItem(LANGUAGE_KEY, currentLanguage);
+  } catch (error) {
+    void error;
+  }
+  seedScheduleControls();
+  syncAdminModalMode();
+  renderConfig();
 };
 
 document.querySelectorAll("[data-filter]").forEach((tab) => {
@@ -2846,6 +3322,12 @@ viewerModeButtons.forEach((button) => {
       return;
     }
     setViewerRole(button.dataset.viewerRole || "admin");
+  });
+});
+
+languageButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setLanguage(button.dataset.language || "ko");
   });
 });
 
@@ -3117,9 +3599,9 @@ composer?.addEventListener("submit", async (event) => {
   }
 
   const isPrivate = privacyButton?.classList.contains("is-active");
-  const originalSubmitLabel = composerSubmitButton?.textContent || "게시하기";
+  const originalSubmitLabel = composerSubmitButton?.textContent || t("composer_submit");
   if (composerSubmitButton) {
-    composerSubmitButton.textContent = "업로드 중...";
+    composerSubmitButton.textContent = t("uploading");
     composerSubmitButton.disabled = true;
   }
 
@@ -3128,7 +3610,7 @@ composer?.addEventListener("submit", async (event) => {
     uploadedMediaItems = await uploadPendingMediaItems(composerMediaItems);
   } catch (error) {
     console.error("Composer media upload failed", error);
-    window.alert("미디어 업로드에 실패했습니다. Supabase Storage 버킷과 업로드 정책을 확인해주세요.");
+    window.alert(t("upload_error"));
     if (composerSubmitButton) {
       composerSubmitButton.textContent = originalSubmitLabel;
       composerSubmitButton.disabled = false;
@@ -3250,7 +3732,7 @@ adminAuthForm?.addEventListener("submit", async (event) => {
   if (password.trim().length < 4) {
     if (adminModalError) {
       adminModalError.hidden = false;
-      adminModalError.textContent = "비밀번호는 4자 이상으로 입력해주세요.";
+      adminModalError.textContent = t("admin_password_short");
     }
     return;
   }
@@ -3274,7 +3756,7 @@ adminAuthForm?.addEventListener("submit", async (event) => {
   } catch (error) {
     if (adminModalError) {
       adminModalError.hidden = false;
-      adminModalError.textContent = "비밀번호가 올바르지 않습니다.";
+      adminModalError.textContent = t("admin_password_invalid");
     }
   }
 });
@@ -3285,11 +3767,11 @@ shareCopyButton?.addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText(value);
     if (shareModalCopy) {
-      shareModalCopy.textContent = "링크가 복사되었습니다.";
+      shareModalCopy.textContent = t("share_copied");
     }
   } catch (error) {
     if (shareModalCopy) {
-      shareModalCopy.textContent = "브라우저에서 링크 복사를 허용하지 않아 직접 복사해주세요.";
+      shareModalCopy.textContent = t("share_copy_failed");
     }
   }
 });
