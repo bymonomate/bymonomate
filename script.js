@@ -907,6 +907,8 @@ let editDrafts = {};
 let scheduleTarget = { mode: "composer", postId: null };
 let emojiTarget = { mode: "composer", postId: null };
 let selectedConversationId = "";
+let mobileDrawerTouchStartX = 0;
+let mobileDrawerTouchCurrentX = 0;
 
 const feed = document.querySelector("#feed");
 const composer = document.querySelector("#tweet-composer");
@@ -942,6 +944,11 @@ const appShell = document.querySelector(".app-shell");
 const navLinks = document.querySelectorAll("[data-view]");
 const viewPanels = document.querySelectorAll("[data-view-panel]");
 const sidebarRight = document.querySelector(".sidebar-right");
+const mobileDrawer = document.querySelector("#mobile-drawer");
+const mobileDrawerBackdrop = document.querySelector("#mobile-drawer-backdrop");
+const mobileDrawerOpen = document.querySelector("#mobile-drawer-open");
+const mobileDrawerToggle = document.querySelector("#mobile-drawer-toggle");
+const mobileDrawerClose = document.querySelector("#mobile-drawer-close");
 const brandLogoOpen = document.querySelector("#brand-logo-open");
 const brandLogoInput = document.querySelector("#brand-logo-input");
 const brandModal = document.querySelector("#brand-modal");
@@ -986,7 +993,7 @@ const aboutEditCancel = document.querySelector("#about-edit-cancel");
 const notificationsList = document.querySelector("#notifications-list");
 const searchViewInput = document.querySelector("#search-view-input");
 const searchKeywordList = document.querySelector("#search-keyword-list");
-const sidebarHashtagList = document.querySelector("#sidebar-hashtag-list");
+const hashtagContainers = document.querySelectorAll("#sidebar-hashtag-list, #mobile-hashtag-list");
 const searchResults = document.querySelector("#search-results");
 const settingsSearchInput = document.querySelector("#settings-search-input");
 const settingsSearchForm = document.querySelector("#settings-search-form");
@@ -994,10 +1001,11 @@ const settingsSearchKeywords = document.querySelector("#settings-search-keywords
 const settingsSalesForm = document.querySelector("#settings-sales-form");
 const settingsNavItems = document.querySelectorAll("[data-settings-panel]");
 const settingsSections = document.querySelectorAll("[data-settings-section]");
-const salesList = document.querySelector("#sales-list");
+const salesLists = document.querySelectorAll("#sales-list, #mobile-sales-list");
 const openViewButtons = document.querySelectorAll("[data-open-view]");
 const viewerModeButtons = document.querySelectorAll("[data-viewer-role]");
 const languageButtons = document.querySelectorAll("[data-language]");
+const inquiryOpenButtons = document.querySelectorAll("[data-open-inquiry-modal], #project-inquiry-open");
 const messageList = document.querySelector("#message-list");
 const messageEmptyList = document.querySelector("#message-empty-list");
 const messageThread = document.querySelector("#message-thread");
@@ -1366,9 +1374,9 @@ const renderSearchKeywords = () => {
     searchKeywordList.innerHTML = markup;
   }
 
-  if (sidebarHashtagList) {
-    sidebarHashtagList.innerHTML = markup;
-  }
+  hashtagContainers.forEach((container) => {
+    container.innerHTML = markup;
+  });
 };
 
 const getSearchResults = (query) => {
@@ -1461,19 +1469,22 @@ const renderSearchResults = (query = "") => {
 };
 
 const renderSalesItems = () => {
-  if (!salesList) return;
+  if (!salesLists.length) return;
   const isEnabled = Boolean(config.sales_list_enabled);
   const items = getSalesItems();
+  const emptyMarkup = `
+    <article class="sales-coming-soon sales-empty">
+      <strong>${t("sales_coming_soon")}</strong>
+      <p>${t("sales_coming_soon_body")}</p>
+    </article>
+  `;
   if (!isEnabled) {
-    salesList.innerHTML = `
-      <article class="sales-coming-soon">
-        <strong>${t("sales_coming_soon")}</strong>
-        <p>${t("sales_coming_soon_body")}</p>
-      </article>
-    `;
+    salesLists.forEach((container) => {
+      container.innerHTML = emptyMarkup;
+    });
     return;
   }
-  salesList.innerHTML = items
+  const markup = items
     .filter((item) => item.title || item.body)
     .map(
       (item) => `
@@ -1493,6 +1504,9 @@ const renderSalesItems = () => {
       `
     )
     .join("");
+  salesLists.forEach((container) => {
+    container.innerHTML = markup || emptyMarkup;
+  });
 };
 
 const getFilteredConversations = () => {
@@ -3150,13 +3164,32 @@ const setActiveView = (view) => {
     sidebarRight.hidden = !isHomeView;
   }
   navLinks.forEach((link) => {
-    link.classList.toggle("is-active", link.dataset.view === view);
+    link.classList.toggle("is-active", link.dataset.view === activeView);
   });
   viewPanels.forEach((panel) => {
     const isActive = panel.dataset.viewPanel === activeView;
     panel.hidden = !isActive;
     panel.classList.toggle("is-active", isActive);
   });
+  closeMobileDrawer();
+};
+
+const isMobileViewport = () => window.matchMedia("(max-width: 860px)").matches;
+
+const openMobileDrawer = () => {
+  if (!isMobileViewport() || !mobileDrawer || !mobileDrawerBackdrop) return;
+  document.body.classList.add("is-mobile-drawer-open");
+  mobileDrawer.hidden = false;
+  mobileDrawerBackdrop.hidden = false;
+  mobileDrawer.setAttribute("aria-hidden", "false");
+};
+
+const closeMobileDrawer = () => {
+  if (!mobileDrawer || !mobileDrawerBackdrop) return;
+  document.body.classList.remove("is-mobile-drawer-open");
+  mobileDrawer.hidden = true;
+  mobileDrawerBackdrop.hidden = true;
+  mobileDrawer.setAttribute("aria-hidden", "true");
 };
 
 const handleBrandLogoFile = (input) => {
@@ -3300,6 +3333,11 @@ navLinks.forEach((link) => {
   });
 });
 
+mobileDrawerOpen?.addEventListener("click", openMobileDrawer);
+mobileDrawerToggle?.addEventListener("click", openMobileDrawer);
+mobileDrawerClose?.addEventListener("click", closeMobileDrawer);
+mobileDrawerBackdrop?.addEventListener("click", closeMobileDrawer);
+
 openViewButtons.forEach((button) => {
   button.addEventListener("click", async () => {
     const targetView = button.dataset.openView || "home";
@@ -3328,6 +3366,13 @@ viewerModeButtons.forEach((button) => {
 languageButtons.forEach((button) => {
   button.addEventListener("click", () => {
     setLanguage(button.dataset.language || "ko");
+  });
+});
+
+inquiryOpenButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    openInquiryModal();
+    closeMobileDrawer();
   });
 });
 
@@ -3698,10 +3743,6 @@ shareModal?.addEventListener("click", (event) => {
   if (event.target === shareModal) closeShareModal();
 });
 
-inquiryOpenButton?.addEventListener("click", () => {
-  openInquiryModal();
-});
-
 inquiryModalClose?.addEventListener("click", closeInquiryModal);
 inquiryCancelButton?.addEventListener("click", closeInquiryModal);
 inquiryModal?.addEventListener("click", (event) => {
@@ -3713,6 +3754,51 @@ inquiryForm?.addEventListener("submit", (event) => {
   const mailto = buildInquiryMailto();
   window.location.href = mailto;
   closeInquiryModal();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeMobileDrawer();
+  }
+});
+
+window.addEventListener("resize", () => {
+  if (!isMobileViewport()) {
+    closeMobileDrawer();
+  }
+});
+
+document.addEventListener(
+  "touchstart",
+  (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    mobileDrawerTouchStartX = touch.clientX;
+    mobileDrawerTouchCurrentX = touch.clientX;
+  },
+  { passive: true }
+);
+
+document.addEventListener(
+  "touchmove",
+  (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    mobileDrawerTouchCurrentX = touch.clientX;
+  },
+  { passive: true }
+);
+
+document.addEventListener("touchend", () => {
+  if (!isMobileViewport()) return;
+  const deltaX = mobileDrawerTouchCurrentX - mobileDrawerTouchStartX;
+  if (!document.body.classList.contains("is-mobile-drawer-open") && mobileDrawerTouchStartX <= 28 && deltaX > 72) {
+    openMobileDrawer();
+  } else if (document.body.classList.contains("is-mobile-drawer-open") && deltaX < -72) {
+    closeMobileDrawer();
+  }
+  mobileDrawerTouchStartX = 0;
+  mobileDrawerTouchCurrentX = 0;
 });
 
 adminModalClose?.addEventListener("click", closeAdminModal);
@@ -3791,21 +3877,25 @@ document.addEventListener("click", (event) => {
     setActiveView("search");
     if (searchViewInput) searchViewInput.value = keyword;
     renderSearchResults(keyword);
+    closeMobileDrawer();
   }
 
   const salesContactButton = target.closest("[data-sales-contact]");
   if (salesContactButton instanceof HTMLButtonElement) {
     openSalesInquiry(salesContactButton.dataset.salesContact || "");
+    closeMobileDrawer();
   }
 
   const searchContactButton = target.closest("[data-search-contact]");
   if (searchContactButton instanceof HTMLButtonElement) {
     openSalesInquiry("판매 리스트");
+    closeMobileDrawer();
   }
 
   const openPostButton = target.closest("[data-search-open-post]");
   if (openPostButton instanceof HTMLButtonElement) {
     openPostFromSearch(openPostButton.dataset.searchOpenPost || "");
+    closeMobileDrawer();
   }
 
   if (!target.closest("#emoji-picker") && !target.closest('[data-composer-action="emoji"]')) {
