@@ -1359,6 +1359,17 @@ const getConversations = () =>
         .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     : [];
 
+const normalizeHashtagTerm = (value = "") => String(value).trim().replace(/^#+/, "").toLowerCase();
+
+const getPostHashtags = (content = "") =>
+  Array.from(
+    new Set(
+      (String(content).match(/#[^\s#]+/g) || [])
+        .map((tag) => normalizeHashtagTerm(tag))
+        .filter(Boolean)
+    )
+  );
+
 const renderSearchKeywords = () => {
   const items = getSearchKeywords();
   const markup = items
@@ -1380,11 +1391,22 @@ const renderSearchKeywords = () => {
 };
 
 const getSearchResults = (query) => {
-  const term = String(query || "").trim().toLowerCase();
-  if (!term) return [];
+  const rawTerm = String(query || "").trim();
+  const term = rawTerm.toLowerCase();
+  const hashtagTerm = normalizeHashtagTerm(rawTerm);
+  const isHashtagSearch = rawTerm.startsWith("#") && Boolean(hashtagTerm);
+  if (!rawTerm) return [];
 
   const postMatches = config.posts
-    .filter((post) => `${post.content} ${post.mediaItems.map((item) => item.type).join(" ")}`.toLowerCase().includes(term))
+    .filter((post) => {
+      if (isHashtagSearch) {
+        return getPostHashtags(post.content).includes(hashtagTerm);
+      }
+
+      return `${post.content} ${post.mediaItems.map((item) => item.type).join(" ")}`
+        .toLowerCase()
+        .includes(term);
+    })
     .slice(0, 6)
     .map((post) => ({
       type: "post",
@@ -1413,9 +1435,11 @@ const getSearchResults = (query) => {
 const renderSearchResults = (query = "") => {
   if (!searchResults) return;
   document.querySelectorAll("[data-search-keyword]").forEach((button) => {
+    const buttonTerm = normalizeHashtagTerm(button.dataset.searchKeyword || "");
+    const queryTerm = normalizeHashtagTerm(query || "");
     button.classList.toggle(
       "is-active",
-      String(button.dataset.searchKeyword || "").toLowerCase() === String(query || "").trim().toLowerCase()
+      Boolean(queryTerm) && buttonTerm === queryTerm
     );
   });
   const results = getSearchResults(query);
@@ -3874,28 +3898,33 @@ document.addEventListener("click", (event) => {
   const keywordButton = target.closest("[data-search-keyword]");
   if (keywordButton instanceof HTMLButtonElement) {
     const keyword = keywordButton.dataset.searchKeyword || "";
+    const hashtagQuery = keyword ? `#${keyword}` : "";
     setActiveView("search");
-    if (searchViewInput) searchViewInput.value = keyword;
-    renderSearchResults(keyword);
+    if (searchViewInput) searchViewInput.value = hashtagQuery;
+    renderSearchResults(hashtagQuery);
     closeMobileDrawer();
+    return;
   }
 
   const salesContactButton = target.closest("[data-sales-contact]");
   if (salesContactButton instanceof HTMLButtonElement) {
     openSalesInquiry(salesContactButton.dataset.salesContact || "");
     closeMobileDrawer();
+    return;
   }
 
   const searchContactButton = target.closest("[data-search-contact]");
   if (searchContactButton instanceof HTMLButtonElement) {
     openSalesInquiry("판매 리스트");
     closeMobileDrawer();
+    return;
   }
 
   const openPostButton = target.closest("[data-search-open-post]");
   if (openPostButton instanceof HTMLButtonElement) {
     openPostFromSearch(openPostButton.dataset.searchOpenPost || "");
     closeMobileDrawer();
+    return;
   }
 
   if (!target.closest("#emoji-picker") && !target.closest('[data-composer-action="emoji"]')) {
