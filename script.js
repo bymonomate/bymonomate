@@ -896,6 +896,7 @@ if (!String(config.services_title || "").trim()) {
   config.services_title = DEFAULT_CONFIG.services_title;
 }
 let currentFilter = "latest";
+let activeFeedHashtag = "";
 let activeView = "home";
 let activeSettingsPanel = "account";
 let messageFilterMode = "all";
@@ -1372,21 +1373,29 @@ const getPostHashtags = (content = "") =>
 
 const renderSearchKeywords = () => {
   const items = getSearchKeywords();
-  const markup = items
+  const searchMarkup = items
     .map(
       (keyword) =>
-        `<button class="search-keyword-chip" type="button" data-search-keyword="${escapeHtml(keyword)}">#${escapeHtml(
+        `<button class="search-keyword-chip" type="button" data-search-keyword="${escapeHtml(keyword)}" data-feed-hashtag="${escapeHtml(keyword)}">#${escapeHtml(
+          keyword
+        )}</button>`
+    )
+    .join("");
+  const hashtagMarkup = items
+    .map(
+      (keyword) =>
+        `<button class="search-keyword-chip" type="button" data-feed-hashtag="${escapeHtml(keyword)}">#${escapeHtml(
           keyword
         )}</button>`
     )
     .join("");
 
   if (searchKeywordList) {
-    searchKeywordList.innerHTML = markup;
+    searchKeywordList.innerHTML = searchMarkup;
   }
 
   hashtagContainers.forEach((container) => {
-    container.innerHTML = markup;
+    container.innerHTML = hashtagMarkup;
   });
 };
 
@@ -2035,6 +2044,7 @@ const submitInquiryToNetlify = async (conversation, message) => {
 };
 
 const openPostFromSearch = (postId) => {
+  activeFeedHashtag = "";
   currentFilter = "latest";
   document.querySelectorAll("[data-filter]").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.filter === "latest");
@@ -2113,8 +2123,33 @@ const renderContent = (content) =>
   escapeHtml(content).replace(/(#[\p{L}\p{N}_-]+)/gu, '<span class="hash-tag">$1</span>');
 
 const getVisiblePosts = () => {
-  if (currentFilter === "all") return [...config.posts];
-  return [...config.posts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const posts =
+    currentFilter === "all"
+      ? [...config.posts]
+      : [...config.posts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  if (!activeFeedHashtag) return posts;
+  return posts.filter((post) => getPostHashtags(post.content).includes(activeFeedHashtag));
+};
+
+const syncFeedHashtagButtons = () => {
+  document.querySelectorAll("[data-feed-hashtag]").forEach((button) => {
+    if (!(button instanceof HTMLButtonElement)) return;
+    button.classList.toggle("is-active", normalizeHashtagTerm(button.dataset.feedHashtag || "") === activeFeedHashtag);
+  });
+};
+
+const setFeedHashtagFilter = (keyword = "") => {
+  activeFeedHashtag = normalizeHashtagTerm(keyword);
+  currentFilter = "latest";
+  document.querySelectorAll("[data-filter]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.filter === "latest");
+  });
+  setActiveView("home");
+  renderPosts();
+  requestAnimationFrame(() => {
+    document.querySelector(".timeline-header")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 };
 
 const openLightbox = (src, type) => {
@@ -3163,11 +3198,30 @@ const renderPosts = () => {
   if (!feed) return;
   const posts = getVisiblePosts();
   feed.classList.toggle("is-gallery", currentFilter === "all");
-  feed.innerHTML =
-    currentFilter === "all"
+  syncFeedHashtagButtons();
+  const hashtagBanner = activeFeedHashtag
+    ? `
+      <div class="feed-filter-banner">
+        <span class="feed-filter-label">#${escapeHtml(activeFeedHashtag)}</span>
+        <button class="feed-filter-clear" type="button" data-clear-feed-hashtag>${
+          currentLanguage === "en" ? "Show all posts" : "전체 게시물 보기"
+        }</button>
+      </div>
+    `
+    : "";
+  const contentMarkup = !posts.length
+    ? `
+      <article class="search-result-empty feed-filter-empty">
+        <strong>${currentLanguage === "en" ? "No posts found for this hashtag." : "이 해시태그의 게시물이 아직 없습니다."}</strong>
+        <p>${currentLanguage === "en" ? "Try another hashtag or clear the filter." : "다른 해시태그를 누르거나 필터를 해제해보세요."}</p>
+      </article>
+    `
+    : currentFilter === "all"
       ? `<div class="gallery-grid">${createGalleryMarkup(posts)}</div>`
       : posts.map(createPostMarkup).join("");
+  feed.innerHTML = `${hashtagBanner}${contentMarkup}`;
   applyImageConfig(config);
+  if (!posts.length) return;
   if (currentFilter === "all") {
     bindMediaOpeners();
   } else {
@@ -3895,6 +3949,13 @@ document.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof Element)) return;
 
+  const feedHashtagButton = target.closest("[data-feed-hashtag]");
+  if (feedHashtagButton instanceof HTMLButtonElement) {
+    setFeedHashtagFilter(feedHashtagButton.dataset.feedHashtag || "");
+    closeMobileDrawer();
+    return;
+  }
+
   const keywordButton = target.closest("[data-search-keyword]");
   if (keywordButton instanceof HTMLButtonElement) {
     const keyword = keywordButton.dataset.searchKeyword || "";
@@ -3903,6 +3964,13 @@ document.addEventListener("click", (event) => {
     if (searchViewInput) searchViewInput.value = hashtagQuery;
     renderSearchResults(hashtagQuery);
     closeMobileDrawer();
+    return;
+  }
+
+  const clearFeedHashtagButton = target.closest("[data-clear-feed-hashtag]");
+  if (clearFeedHashtagButton instanceof HTMLButtonElement) {
+    activeFeedHashtag = "";
+    renderPosts();
     return;
   }
 
