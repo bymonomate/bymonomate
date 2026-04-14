@@ -910,6 +910,8 @@ let emojiCategory = "smileys";
 let emojiSearch = "";
 let editDrafts = {};
 const expandedPostIds = new Set();
+let lightboxItems = [];
+let lightboxIndex = 0;
 let scheduleTarget = { mode: "composer", postId: null };
 let emojiTarget = { mode: "composer", postId: null };
 let selectedConversationId = "";
@@ -943,6 +945,9 @@ const schedulePeriod = document.querySelector("#schedule-period");
 const lightbox = document.querySelector("#media-lightbox");
 const lightboxContent = document.querySelector("#media-lightbox-content");
 const lightboxClose = document.querySelector("#media-lightbox-close");
+const lightboxPrev = document.querySelector("#media-lightbox-prev");
+const lightboxNext = document.querySelector("#media-lightbox-next");
+const lightboxCount = document.querySelector("#media-lightbox-count");
 const privacyButton = document.querySelector('[data-composer-action="privacy"]');
 const emojiButton = document.querySelector('[data-composer-action="emoji"]');
 const scheduleButton = document.querySelector('[data-composer-action="schedule"]');
@@ -2157,14 +2162,41 @@ const setFeedHashtagFilter = (keyword = "") => {
   });
 };
 
-const openLightbox = (src, type) => {
+const renderLightboxSlide = () => {
   if (!lightbox || !lightboxContent) return;
+  const item = lightboxItems[lightboxIndex];
+  if (!item) return;
+
   lightboxContent.innerHTML =
-    type === "video"
-      ? `<video src="${src}" controls autoplay playsinline></video>`
-      : `<img src="${src}" alt="원본 이미지" />`;
+    item.type === "video"
+      ? `<video src="${item.src}" controls autoplay playsinline></video>`
+      : `<img src="${item.src}" alt="원본 이미지" />`;
+
+  const hasMultiple = lightboxItems.length > 1;
+  if (lightboxPrev) lightboxPrev.hidden = !hasMultiple;
+  if (lightboxNext) lightboxNext.hidden = !hasMultiple;
+  if (lightboxCount) {
+    lightboxCount.hidden = !hasMultiple;
+    lightboxCount.textContent = hasMultiple ? `${lightboxIndex + 1} / ${lightboxItems.length}` : "";
+  }
+};
+
+const openLightbox = (itemsOrSrc, type = "image", startIndex = 0) => {
+  if (!lightbox || !lightboxContent) return;
+  lightboxItems = Array.isArray(itemsOrSrc)
+    ? itemsOrSrc.filter((item) => String(item?.src || "").trim())
+    : [{ src: String(itemsOrSrc || ""), type: String(type || "image") }];
+  if (!lightboxItems.length) return;
+  lightboxIndex = Math.min(Math.max(startIndex, 0), lightboxItems.length - 1);
+  renderLightboxSlide();
   lightbox.hidden = false;
-  document.body.style.overflow = "hidden";
+  updateBodyLock();
+};
+
+const moveLightbox = (direction) => {
+  if (lightboxItems.length <= 1) return;
+  lightboxIndex = (lightboxIndex + direction + lightboxItems.length) % lightboxItems.length;
+  renderLightboxSlide();
 };
 
 const updateBodyLock = () => {
@@ -2182,12 +2214,15 @@ const closeLightbox = () => {
   if (!lightbox || !lightboxContent) return;
   lightbox.hidden = true;
   lightboxContent.innerHTML = "";
+  lightboxItems = [];
+  lightboxIndex = 0;
   updateBodyLock();
 };
 
 const renderMediaGallery = (mediaItems, prefix) => {
   if (!mediaItems.length) return "";
   const count = Math.min(mediaItems.length, 4);
+  const hiddenCount = Math.max(mediaItems.length - count, 0);
   const firstItem = mediaItems[0];
   const firstRatio = Number(firstItem?.aspectRatio || 0);
   const singleLayout =
@@ -2195,7 +2230,7 @@ const renderMediaGallery = (mediaItems, prefix) => {
   return `
     <div class="tweet-media-gallery media-count-${count}${singleLayout ? ` media-layout-${singleLayout}` : ""}">
       ${mediaItems
-        .slice(0, 4)
+        .slice(0, count)
         .map(
           (item, index) => `
             <button
@@ -2211,6 +2246,7 @@ const renderMediaGallery = (mediaItems, prefix) => {
                   ? `<video src="${item.src}" ${item.poster ? `poster="${item.poster}"` : ""} muted playsinline preload="metadata"></video>`
                   : `<img src="${item.src}" alt="첨부 이미지 ${index + 1}" />`
               }
+              ${hiddenCount > 0 && index === count - 1 ? `<span class="tweet-media-more">+${hiddenCount}</span>` : ""}
             </button>
           `
         )
@@ -2947,6 +2983,41 @@ const closeAllEditors = () => {
 const bindMediaOpeners = () => {
   document.querySelectorAll("[data-media-open]").forEach((button) => {
     button.addEventListener("click", () => {
+      const postCard = button.closest("[data-post-id]");
+      if (postCard instanceof HTMLElement) {
+        const post = config.posts.find((item) => item.id === postCard.dataset.postId);
+        if (post?.mediaItems?.length) {
+          const galleryButtons = Array.from(postCard.querySelectorAll("[data-media-open]"));
+          const index = Math.max(galleryButtons.findIndex((item) => item === button), 0);
+          openLightbox(post.mediaItems, "image", index);
+          return;
+        }
+      }
+
+      const galleryCard = button.closest("[data-gallery-post]");
+      if (galleryCard instanceof HTMLElement) {
+        const post = config.posts.find((item) => item.id === galleryCard.dataset.galleryPost);
+        if (post?.mediaItems?.length) {
+          openLightbox(post.mediaItems, "image", 0);
+          return;
+        }
+      }
+
+      const gallery = button.closest(".tweet-media-gallery");
+      if (gallery) {
+        const buttons = Array.from(gallery.querySelectorAll("[data-media-open]"));
+        const items = buttons.map((item) => ({
+          src: item.dataset.mediaSrc || "",
+          type: item.dataset.mediaType || "image",
+        }));
+        const index = Math.max(
+          buttons.findIndex((item) => item === button),
+          0
+        );
+        openLightbox(items, "image", index);
+        return;
+      }
+
       openLightbox(button.dataset.mediaSrc || "", button.dataset.mediaType || "image");
     });
   });
@@ -3122,7 +3193,7 @@ const bindPostActions = () => {
         files.map((file) => readMediaItem(file))
       ).then((items) => {
         const draft = ensureEditDraft(id);
-        draft.mediaItems = [...draft.mediaItems, ...items].slice(0, 4);
+        draft.mediaItems = [...draft.mediaItems, ...items];
         const card = input.closest(".tweet-card");
         if (card) updateEditDraftUI(card, id);
         input.value = "";
@@ -3705,7 +3776,7 @@ composerMediaInput?.addEventListener("change", () => {
   Promise.all(
     files.map((file) => readMediaItem(file))
   ).then((items) => {
-    composerMediaItems = [...composerMediaItems, ...items].slice(0, 4);
+    composerMediaItems = [...composerMediaItems, ...items];
     renderComposerPreview();
     composerMediaInput.value = "";
     composerMediaInput.accept = "image/*,video/*";
@@ -3872,6 +3943,13 @@ inquiryForm?.addEventListener("submit", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     closeMobileDrawer();
+    closeLightbox();
+  }
+  if (lightbox?.hidden === false && event.key === "ArrowLeft") {
+    moveLightbox(-1);
+  }
+  if (lightbox?.hidden === false && event.key === "ArrowRight") {
+    moveLightbox(1);
   }
 });
 
@@ -3976,6 +4054,8 @@ shareCopyButton?.addEventListener("click", async () => {
 });
 
 lightboxClose?.addEventListener("click", closeLightbox);
+lightboxPrev?.addEventListener("click", () => moveLightbox(-1));
+lightboxNext?.addEventListener("click", () => moveLightbox(1));
 lightbox?.addEventListener("click", (event) => {
   if (event.target === lightbox) closeLightbox();
 });
