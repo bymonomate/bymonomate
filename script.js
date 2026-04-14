@@ -1185,10 +1185,10 @@ const fetchRemoteState = async ({ silent = false } = {}) => {
 };
 
 const persistRemoteState = async () => {
-  if (!isAdminViewer() || !isAdminAuthenticated() || isHydratingFromRemote) return;
+  if (!isAdminViewer() || !isAdminAuthenticated() || isHydratingFromRemote) return false;
   try {
     const token = getAdminAuthToken();
-    if (!token) return;
+    if (!token) return false;
     const response = await fetch(API_SITE_STATE_ENDPOINT, {
       method: "POST",
       headers: {
@@ -1207,8 +1207,10 @@ const persistRemoteState = async () => {
       localStateUpdatedAt = remoteStateUpdatedAt;
       setLocalStateUpdatedAt(remoteStateUpdatedAt);
     }
+    return true;
   } catch (error) {
     console.error("Remote state save failed", error);
+    return false;
   }
 };
 
@@ -3166,7 +3168,10 @@ const bindPostActions = () => {
       const id = button.dataset.deletePost;
       config.posts = config.posts.filter((post) => post.id !== id);
       saveConfig();
-      await persistRemoteState();
+      if (!(await persistRemoteState())) {
+        window.alert(currentLanguage === "en" ? "Shared save failed. Please try again." : "공용 저장에 실패했습니다. 다시 시도해주세요.");
+        return;
+      }
       renderPosts();
     });
   });
@@ -3208,7 +3213,12 @@ const bindPostActions = () => {
       );
       delete editDrafts[id];
       saveConfig();
-      await persistRemoteState();
+      if (!(await persistRemoteState())) {
+        window.alert(currentLanguage === "en" ? "Shared save failed. Please try again." : "공용 저장에 실패했습니다. 다시 시도해주세요.");
+        button.textContent = originalLabel;
+        button.disabled = false;
+        return;
+      }
       renderPosts();
       button.textContent = originalLabel;
       button.disabled = false;
@@ -3469,26 +3479,32 @@ const closeMobileDrawer = () => {
   mobileDrawer.setAttribute("aria-hidden", "true");
 };
 
-const handleBrandLogoFile = (input) => {
+const handleBrandLogoFile = async (input) => {
   const [file] = input.files || [];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    config.brand_logo = String(reader.result || "");
+  try {
+    const remoteSrc = await uploadFileToSupabaseStorage(file, "image");
+    config.brand_logo = remoteSrc;
     saveConfig();
+    const saved = await persistRemoteState();
+    if (!saved) {
+      window.alert(currentLanguage === "en" ? "Shared save failed. Please try again." : "공용 저장에 실패했습니다. 다시 시도해주세요.");
+      return;
+    }
     applyImageConfig(config);
     input.value = "";
     closeBrandModal();
-  };
-  reader.readAsDataURL(file);
+  } catch (error) {
+    console.error("Brand logo upload failed", error);
+    window.alert(t("upload_error"));
+  }
 };
 
-const handleServiceImageFile = (number, input) => {
+const handleServiceImageFile = async (number, input) => {
   const [file] = input.files || [];
   if (!file || !aboutEditor) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const value = String(reader.result || "");
+  try {
+    const value = await uploadFileToSupabaseStorage(file, "image");
     const key = `service_${number}_image`;
     config[key] = value;
     const urlField = aboutEditor.querySelector(`[name="${key}"]`);
@@ -3496,10 +3512,17 @@ const handleServiceImageFile = (number, input) => {
       urlField.value = value;
     }
     saveConfig();
+    const saved = await persistRemoteState();
+    if (!saved) {
+      window.alert(currentLanguage === "en" ? "Shared save failed. Please try again." : "공용 저장에 실패했습니다. 다시 시도해주세요.");
+      return;
+    }
     renderConfig();
     input.value = "";
-  };
-  reader.readAsDataURL(file);
+  } catch (error) {
+    console.error("Service image upload failed", error);
+    window.alert(t("upload_error"));
+  }
 };
 
 const fillAboutEditor = () => {
@@ -3700,7 +3723,10 @@ aboutEditor?.addEventListener("submit", async (event) => {
     config[key] = String(formData.get(key) || "").trim();
   });
   saveConfig();
-  await persistRemoteState();
+  if (!(await persistRemoteState())) {
+    window.alert(currentLanguage === "en" ? "Shared save failed. Please try again." : "공용 저장에 실패했습니다. 다시 시도해주세요.");
+    return;
+  }
   renderConfig();
   setAboutEditing(false);
 });
@@ -3710,7 +3736,10 @@ settingsSearchForm?.addEventListener("submit", async (event) => {
   const raw = String(settingsSearchKeywords?.value || "");
   config.search_keywords = parseSearchKeywordsInput(raw);
   saveConfig();
-  await persistRemoteState();
+  if (!(await persistRemoteState())) {
+    showSettingsStatus(settingsSearchStatus, currentLanguage === "en" ? "Shared save failed." : "공용 저장에 실패했습니다.");
+    return;
+  }
   renderSearchKeywords();
   renderSearchResults(searchViewInput?.value || "");
   fillSettingsForm();
@@ -3741,7 +3770,10 @@ settingsSalesForm?.addEventListener("submit", async (event) => {
     available: Boolean(document.querySelector(`#sales-item-${number}-available`)?.checked),
   }));
   saveConfig();
-  await persistRemoteState();
+  if (!(await persistRemoteState())) {
+    showSettingsStatus(settingsSalesStatus, currentLanguage === "en" ? "Shared save failed." : "공용 저장에 실패했습니다.");
+    return;
+  }
   renderSalesItems();
   renderSearchResults(searchViewInput?.value || "");
   fillSettingsForm();
@@ -3974,7 +4006,14 @@ composer?.addEventListener("submit", async (event) => {
   pushNotification("new_post", "새 게시물이 등록되었습니다", content.slice(0, 64));
 
   saveConfig();
-  await persistRemoteState();
+  if (!(await persistRemoteState())) {
+    window.alert(currentLanguage === "en" ? "Shared save failed. Please try again." : "공용 저장에 실패했습니다. 다시 시도해주세요.");
+    if (composerSubmitButton) {
+      composerSubmitButton.textContent = originalSubmitLabel;
+      composerSubmitButton.disabled = false;
+    }
+    return;
+  }
   composer.reset();
   composerMediaItems = [];
   composerMediaInput.accept = "image/*,video/*";
