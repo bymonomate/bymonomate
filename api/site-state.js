@@ -2,6 +2,7 @@ const { verifyAdminToken } = require("./_auth");
 const { supabaseRequest } = require("./_supabase");
 
 const STATE_ID = "primary";
+const getPostCount = (state) => (Array.isArray(state?.posts) ? state.posts.length : 0);
 
 const getAuthorizationToken = (req) => {
   const header = String(req.headers.authorization || "");
@@ -32,9 +33,42 @@ module.exports = async (req, res) => {
       }
 
       const state = req.body?.state;
+      const force = req.body?.force === true;
       if (!state || typeof state !== "object") {
         res.status(400).json({ error: "INVALID_STATE" });
         return;
+      }
+
+      const currentRows = await supabaseRequest(
+        `/site_state?id=eq.${STATE_ID}&select=state,updated_at`,
+        { prefer: "return=representation" }
+      );
+      const currentRow = Array.isArray(currentRows) ? currentRows[0] : null;
+      const currentState = currentRow?.state || null;
+      const currentPostCount = getPostCount(currentState);
+      const nextPostCount = getPostCount(state);
+
+      if (!force && currentPostCount > 0 && nextPostCount > 0 && nextPostCount < currentPostCount) {
+        res.status(409).json({
+          error: "POST_COUNT_SHRINK_BLOCKED",
+          detail: `current=${currentPostCount}, next=${nextPostCount}`,
+        });
+        return;
+      }
+
+      if (currentState && typeof currentState === "object") {
+        await supabaseRequest("/site_state_history", {
+          method: "POST",
+          body: {
+            state_id: STATE_ID,
+            state: currentState,
+            saved_at: currentRow?.updated_at || new Date().toISOString(),
+            post_count: currentPostCount,
+          },
+          headers: {
+            Prefer: "return=minimal",
+          },
+        });
       }
 
       const rows = await supabaseRequest("/site_state", {
