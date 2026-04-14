@@ -386,7 +386,8 @@ body[data-viewer-role="client"] #about-page-menu {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 14px 10px;
+  min-height: 60px;
+  padding: 8px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(5, 5, 5, 0.98);
 }
@@ -4013,9 +4014,11 @@ body.is-mobile-drawer-open .mobile-drawer {
 
   .timeline-header {
     position: sticky;
-    top: 61px;
+    top: 60px;
     z-index: 110;
     grid-template-columns: 1fr 1fr;
+    margin-top: -1px;
+    background: rgba(5, 5, 5, 0.99);
   }
 
   .timeline-header-tools {
