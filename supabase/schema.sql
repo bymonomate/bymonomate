@@ -4,23 +4,11 @@ create table if not exists public.site_state (
   updated_at timestamptz not null default now()
 );
 
-create table if not exists public.site_state_history (
-  id bigserial primary key,
-  state_id text not null,
-  state jsonb not null,
-  post_count integer not null default 0,
-  saved_at timestamptz not null default now()
-);
-
 alter table public.site_state disable row level security;
-alter table public.site_state_history disable row level security;
 
 insert into public.site_state (id, state)
 values ('primary', '{}'::jsonb)
 on conflict (id) do nothing;
-
-create index if not exists site_state_history_state_id_idx
-on public.site_state_history (state_id, saved_at desc);
 
 create table if not exists public.inquiries (
   id text primary key,
