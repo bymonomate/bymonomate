@@ -1124,8 +1124,18 @@ const fetchRemoteState = async ({ silent = false } = {}) => {
       return;
     }
     remoteStateUpdatedAt = String(payload?.updatedAt || "");
-    if (payload?.state && typeof payload.state === "object") {
+    const remoteState = payload?.state;
+    const hasRemoteContent =
+      remoteState &&
+      typeof remoteState === "object" &&
+      !Array.isArray(remoteState) &&
+      Object.keys(remoteState).length > 0;
+    if (hasRemoteContent) {
       applyRemoteState(payload.state);
+      return;
+    }
+    if (isAdminViewer() && isAdminAuthenticated()) {
+      scheduleRemoteSave();
     }
   } catch (error) {
     if (!silent) {
@@ -2294,6 +2304,8 @@ const renderComposerPreview = () => {
   }
 
   composerMediaPreview.hidden = false;
+  const visibleItems = composerMediaItems.slice(0, 4);
+  const hiddenCount = Math.max(composerMediaItems.length - visibleItems.length, 0);
   const singleLayout =
     composerMediaItems.length === 1
       ? Number(composerMediaItems[0]?.aspectRatio || 0) > 0 && Number(composerMediaItems[0]?.aspectRatio || 0) < 0.8
@@ -2301,7 +2313,7 @@ const renderComposerPreview = () => {
         : " is-natural"
       : "";
   composerMediaPreview.className = `composer-media-preview is-${composerMediaItems.length === 1 ? "single" : "grid"}${singleLayout}`;
-  composerMediaPreview.innerHTML = composerMediaItems
+  composerMediaPreview.innerHTML = visibleItems
     .map(
       (item, index) => `
         <div class="composer-media-thumb" data-composer-thumb="${index}">
@@ -2311,6 +2323,7 @@ const renderComposerPreview = () => {
               ? `<video src="${item.src}" ${item.poster ? `poster="${item.poster}"` : ""} controls playsinline preload="metadata"></video>`
               : `<img src="${item.src}" alt="업로드 미리보기 ${index + 1}" />`
           }
+          ${hiddenCount > 0 && index === visibleItems.length - 1 ? `<span class="tweet-media-more">+${hiddenCount}</span>` : ""}
         </div>
       `
     )
@@ -2326,6 +2339,8 @@ const removeComposerMediaAt = (index) => {
 
 const renderMediaPreviewMarkup = (mediaItems, prefix) => {
   if (!mediaItems.length) return "";
+  const visibleItems = mediaItems.slice(0, 4);
+  const hiddenCount = Math.max(mediaItems.length - visibleItems.length, 0);
   const previewClass =
     mediaItems.length === 1
       ? `composer-media-preview is-single ${
@@ -2336,7 +2351,7 @@ const renderMediaPreviewMarkup = (mediaItems, prefix) => {
       : "composer-media-preview is-grid";
   return `
     <div class="${previewClass}" data-edit-preview="${prefix}">
-      ${mediaItems
+      ${visibleItems
         .map(
           (item, index) => `
             <div class="composer-media-thumb" data-edit-thumb="${prefix}-${index}">
@@ -2346,6 +2361,7 @@ const renderMediaPreviewMarkup = (mediaItems, prefix) => {
                   ? `<video src="${item.src}" ${item.poster ? `poster="${item.poster}"` : ""} controls playsinline preload="metadata"></video>`
                   : `<img src="${item.src}" alt="업로드 미리보기 ${index + 1}" />`
               }
+              ${hiddenCount > 0 && index === visibleItems.length - 1 ? `<span class="tweet-media-more">+${hiddenCount}</span>` : ""}
             </div>
           `
         )
