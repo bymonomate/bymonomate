@@ -3635,7 +3635,7 @@ aboutEditCancel?.addEventListener("click", () => {
   setAboutEditing(false);
 });
 
-aboutEditor?.addEventListener("submit", (event) => {
+aboutEditor?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(aboutEditor);
   [
@@ -3667,11 +3667,12 @@ aboutEditor?.addEventListener("submit", (event) => {
     config[key] = String(formData.get(key) || "").trim();
   });
   saveConfig();
+  await persistRemoteState();
   renderConfig();
   setAboutEditing(false);
 });
 
-settingsSearchForm?.addEventListener("submit", (event) => {
+settingsSearchForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const raw = String(settingsSearchKeywords?.value || "");
   config.search_keywords = raw
@@ -3679,7 +3680,9 @@ settingsSearchForm?.addEventListener("submit", (event) => {
     .map((item) => item.trim())
     .filter(Boolean);
   saveConfig();
+  await persistRemoteState();
   renderSearchKeywords();
+  renderSearchResults(searchViewInput?.value || "");
   fillSettingsForm();
 });
 
@@ -3693,7 +3696,7 @@ settingsSearchInput?.addEventListener("input", () => {
   filterSettingsPanels();
 });
 
-settingsSalesForm?.addEventListener("submit", (event) => {
+settingsSalesForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   config.sales_list_enabled = Boolean(document.querySelector("#sales-list-enabled")?.checked);
   config.sales_items = [1, 2, 3].map((number) => ({
@@ -3703,7 +3706,9 @@ settingsSalesForm?.addEventListener("submit", (event) => {
     available: Boolean(document.querySelector(`#sales-item-${number}-available`)?.checked),
   }));
   saveConfig();
+  await persistRemoteState();
   renderSalesItems();
+  renderSearchResults(searchViewInput?.value || "");
   fillSettingsForm();
 });
 
