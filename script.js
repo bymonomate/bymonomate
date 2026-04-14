@@ -3168,10 +3168,7 @@ const bindPostActions = () => {
       const id = button.dataset.deletePost;
       config.posts = config.posts.filter((post) => post.id !== id);
       saveConfig();
-      if (!(await persistRemoteState())) {
-        window.alert(currentLanguage === "en" ? "Shared save failed. Please try again." : "공용 저장에 실패했습니다. 다시 시도해주세요.");
-        return;
-      }
+      await persistRemoteState();
       renderPosts();
     });
   });
@@ -3213,12 +3210,7 @@ const bindPostActions = () => {
       );
       delete editDrafts[id];
       saveConfig();
-      if (!(await persistRemoteState())) {
-        window.alert(currentLanguage === "en" ? "Shared save failed. Please try again." : "공용 저장에 실패했습니다. 다시 시도해주세요.");
-        button.textContent = originalLabel;
-        button.disabled = false;
-        return;
-      }
+      await persistRemoteState();
       renderPosts();
       button.textContent = originalLabel;
       button.disabled = false;
@@ -3486,11 +3478,7 @@ const handleBrandLogoFile = async (input) => {
     const remoteSrc = await uploadFileToSupabaseStorage(file, "image");
     config.brand_logo = remoteSrc;
     saveConfig();
-    const saved = await persistRemoteState();
-    if (!saved) {
-      window.alert(currentLanguage === "en" ? "Shared save failed. Please try again." : "공용 저장에 실패했습니다. 다시 시도해주세요.");
-      return;
-    }
+    await persistRemoteState();
     applyImageConfig(config);
     input.value = "";
     closeBrandModal();
@@ -3512,11 +3500,7 @@ const handleServiceImageFile = async (number, input) => {
       urlField.value = value;
     }
     saveConfig();
-    const saved = await persistRemoteState();
-    if (!saved) {
-      window.alert(currentLanguage === "en" ? "Shared save failed. Please try again." : "공용 저장에 실패했습니다. 다시 시도해주세요.");
-      return;
-    }
+    await persistRemoteState();
     renderConfig();
     input.value = "";
   } catch (error) {
@@ -3723,10 +3707,7 @@ aboutEditor?.addEventListener("submit", async (event) => {
     config[key] = String(formData.get(key) || "").trim();
   });
   saveConfig();
-  if (!(await persistRemoteState())) {
-    window.alert(currentLanguage === "en" ? "Shared save failed. Please try again." : "공용 저장에 실패했습니다. 다시 시도해주세요.");
-    return;
-  }
+  await persistRemoteState();
   renderConfig();
   setAboutEditing(false);
 });
@@ -3736,14 +3717,11 @@ settingsSearchForm?.addEventListener("submit", async (event) => {
   const raw = String(settingsSearchKeywords?.value || "");
   config.search_keywords = parseSearchKeywordsInput(raw);
   saveConfig();
-  if (!(await persistRemoteState())) {
-    showSettingsStatus(settingsSearchStatus, currentLanguage === "en" ? "Shared save failed." : "공용 저장에 실패했습니다.");
-    return;
-  }
+  await persistRemoteState();
   renderSearchKeywords();
   renderSearchResults(searchViewInput?.value || "");
   fillSettingsForm();
-  showSettingsStatus(settingsSearchStatus, currentLanguage === "en" ? "Saved." : "저장되었습니다.");
+  showSettingsStatus(settingsSearchStatus, "");
 });
 
 settingsNavItems.forEach((button) => {
@@ -3770,14 +3748,11 @@ settingsSalesForm?.addEventListener("submit", async (event) => {
     available: Boolean(document.querySelector(`#sales-item-${number}-available`)?.checked),
   }));
   saveConfig();
-  if (!(await persistRemoteState())) {
-    showSettingsStatus(settingsSalesStatus, currentLanguage === "en" ? "Shared save failed." : "공용 저장에 실패했습니다.");
-    return;
-  }
+  await persistRemoteState();
   renderSalesItems();
   renderSearchResults(searchViewInput?.value || "");
   fillSettingsForm();
-  showSettingsStatus(settingsSalesStatus, currentLanguage === "en" ? "Saved." : "저장되었습니다.");
+  showSettingsStatus(settingsSalesStatus, "");
 });
 
 settingsSalesForm?.querySelectorAll("input, textarea").forEach((field) => {
@@ -4006,14 +3981,7 @@ composer?.addEventListener("submit", async (event) => {
   pushNotification("new_post", "새 게시물이 등록되었습니다", content.slice(0, 64));
 
   saveConfig();
-  if (!(await persistRemoteState())) {
-    window.alert(currentLanguage === "en" ? "Shared save failed. Please try again." : "공용 저장에 실패했습니다. 다시 시도해주세요.");
-    if (composerSubmitButton) {
-      composerSubmitButton.textContent = originalSubmitLabel;
-      composerSubmitButton.disabled = false;
-    }
-    return;
-  }
+  await persistRemoteState();
   composer.reset();
   composerMediaItems = [];
   composerMediaInput.accept = "image/*,video/*";
