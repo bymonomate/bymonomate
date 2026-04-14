@@ -270,6 +270,8 @@ const UI_TRANSLATIONS = {
     search_prompt_body: "게시물, 판매 항목, 키워드에 맞는 결과를 바로 찾아드립니다.",
     search_empty_title: "일치하는 결과가 없습니다.",
     search_empty_body: "다른 검색어를 입력하거나 추천 검색어를 다시 선택해보세요.",
+    post_show_more: "더 보기",
+    post_show_less: "접기",
     search_result_post: "게시물",
     search_result_sale: "판매 항목",
     open_post: "게시물 보기",
@@ -420,6 +422,8 @@ const UI_TRANSLATIONS = {
     search_prompt_body: "Find matching posts, sales items, and keywords instantly.",
     search_empty_title: "No matching results",
     search_empty_body: "Try another keyword or choose a recommended hashtag again.",
+    post_show_more: "Show more",
+    post_show_less: "Show less",
     search_result_post: "Post",
     search_result_sale: "Sales item",
     open_post: "Open post",
@@ -905,6 +909,7 @@ let composerMediaItems = [];
 let emojiCategory = "smileys";
 let emojiSearch = "";
 let editDrafts = {};
+const expandedPostIds = new Set();
 let scheduleTarget = { mode: "composer", postId: null };
 let emojiTarget = { mode: "composer", postId: null };
 let selectedConversationId = "";
@@ -2832,6 +2837,13 @@ const applyScheduledValue = () => {
   closeScheduleModal();
 };
 
+const isPostCollapsible = (content = "") => {
+  const text = String(content || "").trim();
+  if (!text) return false;
+  const lines = text.split(/\r?\n/);
+  return text.length > 280 || lines.length > 8;
+};
+
 const createPostMarkup = (post) => `
   <article class="tweet-card reveal" data-post-id="${post.id}">
     <div class="tweet-head">
@@ -2864,7 +2876,16 @@ const createPostMarkup = (post) => `
       </div>
     </div>
     <div class="tweet-body tweet-body-text" data-open-replies="${post.id}">
-      <p class="tweet-body-copy">${renderContent(post.content)}</p>
+      <div class="tweet-body-copy-wrap ${isPostCollapsible(post.content) ? "is-collapsible" : ""}">
+        <p class="tweet-body-copy ${isPostCollapsible(post.content) && !expandedPostIds.has(post.id) ? "is-collapsed" : ""}">${renderContent(post.content)}</p>
+        ${
+          isPostCollapsible(post.content)
+            ? `<button class="tweet-expand-button" type="button" data-toggle-copy="${post.id}" aria-expanded="${expandedPostIds.has(post.id) ? "true" : "false"}">${
+                expandedPostIds.has(post.id) ? t("post_show_less") : t("post_show_more")
+              }</button>`
+            : ""
+        }
+      </div>
       <div class="tweet-inline-editor" data-inline-editor="${post.id}">
         <textarea data-inline-content="${post.id}">${post.content}</textarea>
         <input data-edit-media-input="${post.id}" type="file" accept="image/*,video/*" multiple hidden />
@@ -3142,6 +3163,20 @@ const bindPostActions = () => {
       saveConfig();
       renderPosts();
       renderNotifications();
+    });
+  });
+
+  document.querySelectorAll("[data-toggle-copy]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const postId = button.dataset.toggleCopy || "";
+      if (!postId) return;
+      if (expandedPostIds.has(postId)) {
+        expandedPostIds.delete(postId);
+      } else {
+        expandedPostIds.add(postId);
+      }
+      renderPosts();
     });
   });
 

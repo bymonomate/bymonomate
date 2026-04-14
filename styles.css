@@ -1211,12 +1211,35 @@ body.is-mobile-drawer-open .mobile-drawer {
   white-space: pre-wrap;
 }
 
+.tweet-body-copy-wrap {
+  display: grid;
+  justify-items: start;
+}
+
+.tweet-body-copy.is-collapsed {
+  max-height: calc(1.72em * 8);
+  overflow: hidden;
+}
+
+.tweet-expand-button {
+  margin-top: 2px;
+  color: #1d9bf0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.tweet-expand-button:hover,
+.tweet-expand-button:focus-visible {
+  text-decoration: underline;
+}
+
 .tweet-inline-editor {
   display: none;
   margin-top: 8px;
   padding-top: 6px;
 }
 
+.tweet-card.is-editing .tweet-body-copy-wrap,
 .tweet-card.is-editing .tweet-body-copy,
 .tweet-card.is-editing .tweet-media-gallery {
   display: none;
