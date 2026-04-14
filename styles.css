@@ -3988,6 +3988,10 @@ body.is-mobile-drawer-open .mobile-drawer {
     min-height: 100dvh;
     border: 0;
     background: var(--bg);
+    overflow: visible;
+    overscroll-behavior: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: auto;
   }
 
   .mobile-topbar {
