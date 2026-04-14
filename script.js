@@ -1,6 +1,5 @@
 const STORAGE_KEY = "monomate-admin-config";
 const LOCAL_STATE_UPDATED_KEY = "monomate-local-state-updated-at";
-const LOCAL_BACKUPS_KEY = "monomate-admin-config-backups";
 const CLIENT_SESSION_KEY = "monomate-client-session-id";
 const ADMIN_SESSION_KEY = "monomate-admin-authenticated";
 const API_SITE_STATE_ENDPOINT = "/api/site-state";
@@ -598,28 +597,6 @@ const EMOJI_CATEGORY_LABELS_EN = {
 
 const cloneDefault = () => JSON.parse(JSON.stringify(DEFAULT_CONFIG));
 
-const cloneValue = (value) => JSON.parse(JSON.stringify(value));
-
-const getPostCount = (state = {}) =>
-  Array.isArray(state?.posts) ? state.posts.length : 0;
-
-const saveLocalBackupSnapshot = (source = config, updatedAt = new Date().toISOString()) => {
-  try {
-    const existing = JSON.parse(localStorage.getItem(LOCAL_BACKUPS_KEY) || "[]");
-    const backups = Array.isArray(existing) ? existing : [];
-    const snapshot = {
-      updatedAt: String(updatedAt || new Date().toISOString()),
-      posts: getPostCount(source),
-      state: cloneValue(source),
-    };
-    backups.push(snapshot);
-    const nextBackups = backups.slice(-10);
-    localStorage.setItem(LOCAL_BACKUPS_KEY, JSON.stringify(nextBackups));
-  } catch (error) {
-    console.error("Local backup save failed", error);
-  }
-};
-
 const getLocalStateUpdatedAt = () => {
   try {
     return String(localStorage.getItem(LOCAL_STATE_UPDATED_KEY) || "");
@@ -1136,7 +1113,6 @@ const getSharedConfigPayload = (source = config) => {
 };
 
 const cacheConfigLocally = (updatedAt = new Date().toISOString()) => {
-  saveLocalBackupSnapshot(config, updatedAt);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
   localStateUpdatedAt = String(updatedAt || "");
   setLocalStateUpdatedAt(localStateUpdatedAt);
@@ -1184,23 +1160,7 @@ const fetchRemoteState = async ({ silent = false } = {}) => {
     const remoteUpdatedAt = String(payload?.updatedAt || "");
     const remoteUpdatedMs = Date.parse(remoteUpdatedAt);
     const localUpdatedMs = Date.parse(localStateUpdatedAt);
-    const remotePostCount = getPostCount(remoteState);
-    const localPostCount = getPostCount(config);
     if (hasRemoteContent) {
-      if (
-        remotePostCount &&
-        localPostCount &&
-        remotePostCount < localPostCount &&
-        Number.isFinite(remoteUpdatedMs) &&
-        Number.isFinite(localUpdatedMs) &&
-        remoteUpdatedMs <= localUpdatedMs
-      ) {
-        if (isAdminViewer() && isAdminAuthenticated()) {
-          console.warn("Remote state has fewer posts than local state. Keeping local state and re-saving.");
-          scheduleRemoteSave();
-        }
-        return;
-      }
       if (
         Number.isFinite(remoteUpdatedMs) &&
         Number.isFinite(localUpdatedMs) &&
@@ -1224,12 +1184,11 @@ const fetchRemoteState = async ({ silent = false } = {}) => {
   }
 };
 
-const persistRemoteState = async ({ force = false } = {}) => {
+const persistRemoteState = async () => {
   if (!isAdminViewer() || !isAdminAuthenticated() || isHydratingFromRemote) return false;
   try {
     const token = getAdminAuthToken();
     if (!token) return false;
-    const sharedState = getSharedConfigPayload(config);
     const response = await fetch(API_SITE_STATE_ENDPOINT, {
       method: "POST",
       headers: {
@@ -1237,19 +1196,10 @@ const persistRemoteState = async ({ force = false } = {}) => {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ state: sharedState, force, postCount: getPostCount(sharedState) }),
+      body: JSON.stringify({ state: getSharedConfigPayload(config) }),
     });
     if (!response.ok) {
-      let detail = `State save failed: ${response.status}`;
-      try {
-        const payload = await response.json();
-        if (payload?.error) {
-          detail = `${payload.error}${payload?.detail ? ` (${payload.detail})` : ""}`;
-        }
-      } catch (error) {
-        void error;
-      }
-      throw new Error(detail);
+      throw new Error(`State save failed: ${response.status}`);
     }
     const payload = await response.json();
     remoteStateUpdatedAt = String(payload?.updatedAt || remoteStateUpdatedAt);
@@ -1264,14 +1214,14 @@ const persistRemoteState = async ({ force = false } = {}) => {
   }
 };
 
-const scheduleRemoteSave = ({ force = false } = {}) => {
+const scheduleRemoteSave = () => {
   if (!isAdminViewer() || !isAdminAuthenticated() || isHydratingFromRemote) return;
   if (remoteSaveTimer) {
     window.clearTimeout(remoteSaveTimer);
   }
   remoteSaveTimer = window.setTimeout(() => {
     remoteSaveTimer = null;
-    void persistRemoteState({ force });
+    void persistRemoteState();
   }, 300);
 };
 
@@ -3218,7 +3168,7 @@ const bindPostActions = () => {
       const id = button.dataset.deletePost;
       config.posts = config.posts.filter((post) => post.id !== id);
       saveConfig();
-      if (!(await persistRemoteState({ force: true }))) {
+      if (!(await persistRemoteState())) {
         window.alert(currentLanguage === "en" ? "Shared save failed. Please try again." : "공용 저장에 실패했습니다. 다시 시도해주세요.");
         return;
       }
