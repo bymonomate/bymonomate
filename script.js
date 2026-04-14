@@ -1,4 +1,5 @@
 const STORAGE_KEY = "monomate-admin-config";
+const LOCAL_STATE_UPDATED_KEY = "monomate-local-state-updated-at";
 const CLIENT_SESSION_KEY = "monomate-client-session-id";
 const ADMIN_SESSION_KEY = "monomate-admin-authenticated";
 const API_SITE_STATE_ENDPOINT = "/api/site-state";
@@ -596,6 +597,27 @@ const EMOJI_CATEGORY_LABELS_EN = {
 
 const cloneDefault = () => JSON.parse(JSON.stringify(DEFAULT_CONFIG));
 
+const getLocalStateUpdatedAt = () => {
+  try {
+    return String(localStorage.getItem(LOCAL_STATE_UPDATED_KEY) || "");
+  } catch (error) {
+    return "";
+  }
+};
+
+const setLocalStateUpdatedAt = (value) => {
+  const nextValue = String(value || "");
+  try {
+    if (nextValue) {
+      localStorage.setItem(LOCAL_STATE_UPDATED_KEY, nextValue);
+    } else {
+      localStorage.removeItem(LOCAL_STATE_UPDATED_KEY);
+    }
+  } catch (error) {
+    return;
+  }
+};
+
 const getStoredLanguage = () => {
   try {
     const stored = localStorage.getItem(LANGUAGE_KEY);
@@ -893,6 +915,7 @@ const loadConfig = () => {
 
 let config = loadConfig();
 let remoteStateUpdatedAt = "";
+let localStateUpdatedAt = getLocalStateUpdatedAt();
 let remoteSyncTimer = null;
 let remoteSaveTimer = null;
 let isHydratingFromRemote = false;
@@ -1087,8 +1110,10 @@ const getSharedConfigPayload = (source = config) => {
   return shared;
 };
 
-const cacheConfigLocally = () => {
+const cacheConfigLocally = (updatedAt = new Date().toISOString()) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  localStateUpdatedAt = String(updatedAt || "");
+  setLocalStateUpdatedAt(localStateUpdatedAt);
 };
 
 const getAdminAuthToken = () => {
@@ -1099,14 +1124,14 @@ const getAdminAuthToken = () => {
   }
 };
 
-const applyRemoteState = (state) => {
+const applyRemoteState = (state, updatedAt = "") => {
   if (!state || typeof state !== "object") return;
   isHydratingFromRemote = true;
   config = buildConfig(state, {
     viewer_role: config.viewer_role,
     client_name: config.client_name,
   });
-  cacheConfigLocally();
+  cacheConfigLocally(updatedAt || remoteStateUpdatedAt || new Date().toISOString());
   renderConfig();
   isHydratingFromRemote = false;
 };
@@ -1130,8 +1155,21 @@ const fetchRemoteState = async ({ silent = false } = {}) => {
       typeof remoteState === "object" &&
       !Array.isArray(remoteState) &&
       Object.keys(remoteState).length > 0;
+    const remoteUpdatedAt = String(payload?.updatedAt || "");
+    const remoteUpdatedMs = Date.parse(remoteUpdatedAt);
+    const localUpdatedMs = Date.parse(localStateUpdatedAt);
     if (hasRemoteContent) {
-      applyRemoteState(payload.state);
+      if (
+        Number.isFinite(remoteUpdatedMs) &&
+        Number.isFinite(localUpdatedMs) &&
+        remoteUpdatedMs < localUpdatedMs
+      ) {
+        if (isAdminViewer() && isAdminAuthenticated()) {
+          scheduleRemoteSave();
+        }
+        return;
+      }
+      applyRemoteState(payload.state, remoteUpdatedAt);
       return;
     }
     if (isAdminViewer() && isAdminAuthenticated()) {
@@ -1163,6 +1201,10 @@ const persistRemoteState = async () => {
     }
     const payload = await response.json();
     remoteStateUpdatedAt = String(payload?.updatedAt || remoteStateUpdatedAt);
+    if (remoteStateUpdatedAt) {
+      localStateUpdatedAt = remoteStateUpdatedAt;
+      setLocalStateUpdatedAt(remoteStateUpdatedAt);
+    }
   } catch (error) {
     console.error("Remote state save failed", error);
   }
@@ -3087,10 +3129,11 @@ const bindPostActions = () => {
   });
 
   document.querySelectorAll("[data-delete-post]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const id = button.dataset.deletePost;
       config.posts = config.posts.filter((post) => post.id !== id);
       saveConfig();
+      await persistRemoteState();
       renderPosts();
     });
   });
@@ -3132,6 +3175,7 @@ const bindPostActions = () => {
       );
       delete editDrafts[id];
       saveConfig();
+      await persistRemoteState();
       renderPosts();
       button.textContent = originalLabel;
       button.disabled = false;
@@ -3880,6 +3924,7 @@ composer?.addEventListener("submit", async (event) => {
   pushNotification("new_post", "새 게시물이 등록되었습니다", content.slice(0, 64));
 
   saveConfig();
+  await persistRemoteState();
   composer.reset();
   composerMediaItems = [];
   composerMediaInput.accept = "image/*,video/*";
