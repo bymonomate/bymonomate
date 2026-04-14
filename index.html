@@ -395,6 +395,8 @@
                 </div>
                 <form id="settings-search-form" class="settings-search-form">
                   <textarea id="settings-search-keywords" name="search_keywords"></textarea>
+                  <p class="settings-form-note">쉼표 또는 줄바꿈으로 구분하면 각각의 해시태그로 저장됩니다.</p>
+                  <p class="settings-form-status" id="settings-search-status" hidden></p>
                   <div class="about-editor-actions">
                     <button class="editor-save" type="submit" data-ui-key="save">저장</button>
                   </div>
@@ -437,6 +439,7 @@
                     <label class="settings-sales-toggle"><input id="sales-item-3-available" name="sales_item_3_available" type="checkbox" /><span data-ui-key="on_sale">판매 중</span></label>
                   </article>
                   <div class="about-editor-actions">
+                    <p class="settings-form-status" id="settings-sales-status" hidden></p>
                     <button class="editor-save" type="submit" data-ui-key="save">저장</button>
                   </div>
                 </form>

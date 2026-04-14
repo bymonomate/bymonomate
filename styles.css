@@ -2866,6 +2866,23 @@ body.is-mobile-drawer-open .mobile-drawer {
   resize: vertical;
 }
 
+.settings-form-note {
+  margin: -4px 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.settings-form-status {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.about-editor-actions .settings-form-status {
+  margin-right: auto;
+}
+
 .settings-sales-form {
   display: grid;
   gap: 14px;

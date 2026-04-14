@@ -1032,7 +1032,9 @@ const searchResults = document.querySelector("#search-results");
 const settingsSearchInput = document.querySelector("#settings-search-input");
 const settingsSearchForm = document.querySelector("#settings-search-form");
 const settingsSearchKeywords = document.querySelector("#settings-search-keywords");
+const settingsSearchStatus = document.querySelector("#settings-search-status");
 const settingsSalesForm = document.querySelector("#settings-sales-form");
+const settingsSalesStatus = document.querySelector("#settings-sales-status");
 const settingsNavItems = document.querySelectorAll("[data-settings-panel]");
 const settingsSections = document.querySelectorAll("[data-settings-section]");
 const salesLists = document.querySelectorAll("#sales-list, #mobile-sales-list");
@@ -1399,6 +1401,35 @@ const getSearchKeywords = () =>
     : currentLanguage === "en"
       ? DEFAULT_SEARCH_KEYWORDS_EN
       : [];
+
+const parseSearchKeywordsInput = (rawValue) =>
+  Array.from(
+    new Set(
+      String(rawValue || "")
+        .split(/[\n,]+/)
+        .flatMap((chunk) => {
+          const trimmed = chunk.trim();
+          if (!trimmed) return [];
+          const hashtagMatches = trimmed.match(/#[^\s#,]+/g) || [];
+          if (hashtagMatches.length) {
+            return hashtagMatches.map((tag) => normalizeHashtagTerm(tag)).filter(Boolean);
+          }
+          return [trimmed.replace(/^#+/, "").trim()].filter(Boolean);
+        })
+        .filter(Boolean)
+    )
+  );
+
+const showSettingsStatus = (element, message) => {
+  if (!(element instanceof HTMLElement)) return;
+  if (!message) {
+    element.hidden = true;
+    element.textContent = "";
+    return;
+  }
+  element.hidden = false;
+  element.textContent = message;
+};
 
 const getSalesItems = () =>
   Array.isArray(config.sales_items)
@@ -1898,7 +1929,9 @@ const sendMessage = async (text) => {
 
 const fillSettingsForm = () => {
   if (settingsSearchKeywords) {
-    settingsSearchKeywords.value = getSearchKeywords().join(", ");
+    settingsSearchKeywords.value = getSearchKeywords()
+      .map((item) => `#${item}`)
+      .join(", ");
   }
 
   const salesEnabledField = document.querySelector("#sales-list-enabled");
@@ -3675,15 +3708,13 @@ aboutEditor?.addEventListener("submit", async (event) => {
 settingsSearchForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const raw = String(settingsSearchKeywords?.value || "");
-  config.search_keywords = raw
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
+  config.search_keywords = parseSearchKeywordsInput(raw);
   saveConfig();
   await persistRemoteState();
   renderSearchKeywords();
   renderSearchResults(searchViewInput?.value || "");
   fillSettingsForm();
+  showSettingsStatus(settingsSearchStatus, currentLanguage === "en" ? "Saved." : "저장되었습니다.");
 });
 
 settingsNavItems.forEach((button) => {
@@ -3694,6 +3725,10 @@ settingsNavItems.forEach((button) => {
 
 settingsSearchInput?.addEventListener("input", () => {
   filterSettingsPanels();
+});
+
+settingsSearchKeywords?.addEventListener("input", () => {
+  showSettingsStatus(settingsSearchStatus, "");
 });
 
 settingsSalesForm?.addEventListener("submit", async (event) => {
@@ -3710,6 +3745,16 @@ settingsSalesForm?.addEventListener("submit", async (event) => {
   renderSalesItems();
   renderSearchResults(searchViewInput?.value || "");
   fillSettingsForm();
+  showSettingsStatus(settingsSalesStatus, currentLanguage === "en" ? "Saved." : "저장되었습니다.");
+});
+
+settingsSalesForm?.querySelectorAll("input, textarea").forEach((field) => {
+  field.addEventListener("input", () => {
+    showSettingsStatus(settingsSalesStatus, "");
+  });
+  field.addEventListener("change", () => {
+    showSettingsStatus(settingsSalesStatus, "");
+  });
 });
 
 messageFilterToggle?.addEventListener("click", () => {
