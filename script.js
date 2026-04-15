@@ -935,6 +935,7 @@ let editDrafts = {};
 const expandedPostIds = new Set();
 let lightboxItems = [];
 let lightboxIndex = 0;
+let lightboxZoom = 1;
 let scheduleTarget = { mode: "composer", postId: null };
 let emojiTarget = { mode: "composer", postId: null };
 let selectedConversationId = "";
@@ -2257,7 +2258,19 @@ const renderLightboxSlide = () => {
   lightboxContent.innerHTML =
     item.type === "video"
       ? `<video src="${item.src}" controls autoplay playsinline></video>`
-      : `<img src="${item.src}" alt="원본 이미지" />`;
+      : `
+        <div class="media-lightbox-toolbar">
+          <button class="media-lightbox-tool" type="button" data-lightbox-zoom="out" aria-label="축소">−</button>
+          <button class="media-lightbox-tool" type="button" data-lightbox-zoom="reset" aria-label="원본 크기">1:1</button>
+          <button class="media-lightbox-tool" type="button" data-lightbox-zoom="in" aria-label="확대">+</button>
+        </div>
+        <div class="media-lightbox-stage">
+          <img class="media-lightbox-image" src="${item.src}" alt="원본 이미지" />
+        </div>
+      `;
+
+  lightboxZoom = 1;
+  lightboxContent.classList.remove("is-zoomed");
 
   const hasMultiple = lightboxItems.length > 1;
   if (lightboxPrev) lightboxPrev.hidden = !hasMultiple;
@@ -2266,6 +2279,16 @@ const renderLightboxSlide = () => {
     lightboxCount.hidden = !hasMultiple;
     lightboxCount.textContent = hasMultiple ? `${lightboxIndex + 1} / ${lightboxItems.length}` : "";
   }
+};
+
+const applyLightboxZoom = (nextZoom) => {
+  if (!lightboxContent) return;
+  const image = lightboxContent.querySelector(".media-lightbox-image");
+  if (!(image instanceof HTMLImageElement)) return;
+  lightboxZoom = Math.min(4, Math.max(1, nextZoom));
+  lightboxContent.classList.toggle("is-zoomed", lightboxZoom > 1);
+  image.style.transform = `scale(${lightboxZoom})`;
+  image.style.transformOrigin = "center center";
 };
 
 const openLightbox = (itemsOrSrc, type = "image", startIndex = 0) => {
@@ -2301,8 +2324,10 @@ const closeLightbox = () => {
   if (!lightbox || !lightboxContent) return;
   lightbox.hidden = true;
   lightboxContent.innerHTML = "";
+  lightboxContent.classList.remove("is-zoomed");
   lightboxItems = [];
   lightboxIndex = 0;
+  lightboxZoom = 1;
   updateBodyLock();
 };
 
@@ -4176,6 +4201,24 @@ lightboxPrev?.addEventListener("click", () => moveLightbox(-1));
 lightboxNext?.addEventListener("click", () => moveLightbox(1));
 lightbox?.addEventListener("click", (event) => {
   if (event.target === lightbox) closeLightbox();
+});
+lightboxContent?.addEventListener("click", (event) => {
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+
+  const zoomButton = target.closest("[data-lightbox-zoom]");
+  if (zoomButton instanceof HTMLButtonElement) {
+    const action = zoomButton.dataset.lightboxZoom;
+    if (action === "in") applyLightboxZoom(lightboxZoom + 0.5);
+    if (action === "out") applyLightboxZoom(lightboxZoom - 0.5);
+    if (action === "reset") applyLightboxZoom(1);
+    event.stopPropagation();
+    return;
+  }
+
+  if (target instanceof HTMLImageElement && target.classList.contains("media-lightbox-image")) {
+    applyLightboxZoom(lightboxZoom > 1 ? 1 : 2);
+  }
 });
 
 document.addEventListener("click", (event) => {
