@@ -105,6 +105,7 @@
         </div>
         <div class="app-view is-active" data-view-panel="home">
         <header class="timeline-header">
+          <button class="timeline-tab" type="button" data-filter="recommended" data-ui-key="tab_recommended">추천</button>
           <button class="timeline-tab is-active" type="button" data-filter="latest" data-ui-key="tab_latest">최신</button>
           <button class="timeline-tab" type="button" data-filter="all" data-ui-key="tab_all">전체</button>
           <div class="timeline-header-tools">
@@ -137,6 +138,10 @@
               <span class="composer-meta-chip" id="composer-schedule-chip" hidden></span>
               <span class="composer-meta-chip" id="composer-privacy-chip" hidden data-ui-key="privacy_private_post">비공개 게시</span>
             </div>
+            <label class="recommend-toggle">
+              <input id="composer-recommended-input" name="is_recommended" type="checkbox" />
+              <span data-ui-key="post_recommended_toggle">추천 탭에 노출</span>
+            </label>
             <div class="composer-toolbar">
               <div class="composer-icons">
                 <button class="composer-icon-button" type="button" data-composer-action="media" data-tooltip="이미지 또는 영상" data-tooltip-key="composer_media" data-aria-label-key="composer_media" aria-label="이미지 또는 영상">

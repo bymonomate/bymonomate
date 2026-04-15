@@ -190,6 +190,7 @@ const UI_TRANSLATIONS = {
     nav_search: "검색",
     nav_settings: "설정",
     brand_logo_edit: "로고 이미지 수정",
+    tab_recommended: "추천",
     tab_latest: "최신",
     tab_all: "전체",
     composer_placeholder: "무슨 일이 일어나고 있나요? 프로젝트 이야기와 #해시태그를 함께 적어보세요.",
@@ -271,6 +272,7 @@ const UI_TRANSLATIONS = {
     search_prompt_body: "게시물, 판매 항목, 키워드에 맞는 결과를 바로 찾아드립니다.",
     search_empty_title: "일치하는 결과가 없습니다.",
     search_empty_body: "다른 검색어를 입력하거나 추천 검색어를 다시 선택해보세요.",
+    post_recommended_toggle: "추천 탭에 노출",
     post_show_more: "더 보기",
     post_show_less: "접기",
     search_result_post: "게시물",
@@ -342,6 +344,7 @@ const UI_TRANSLATIONS = {
     nav_search: "Search",
     nav_settings: "Settings",
     brand_logo_edit: "Edit logo",
+    tab_recommended: "Recommended",
     tab_latest: "Latest",
     tab_all: "All",
     composer_placeholder: "What’s happening? Share your project story with #hashtags.",
@@ -423,6 +426,7 @@ const UI_TRANSLATIONS = {
     search_prompt_body: "Find matching posts, sales items, and keywords instantly.",
     search_empty_title: "No matching results",
     search_empty_body: "Try another keyword or choose a recommended hashtag again.",
+    post_recommended_toggle: "Show in recommended tab",
     post_show_more: "Show more",
     post_show_less: "Show less",
     search_result_post: "Post",
@@ -821,6 +825,7 @@ const normalizePost = (post, index) => ({
   id: String(post.id || `post-${Date.now()}-${index}`),
   date: String(post.date || new Date().toISOString().slice(0, 10)),
   content: String(post.content || post.body || ""),
+  isRecommended: Boolean(post.isRecommended ?? post.recommended),
   mediaItems: normalizeMediaItems(post),
   visibility: String(post.visibility || "public"),
   stats: {
@@ -952,6 +957,7 @@ const composerScheduleInput = document.querySelector("#composer-schedule-input")
 const composerMetaRow = document.querySelector("#composer-meta-row");
 const composerScheduleChip = document.querySelector("#composer-schedule-chip");
 const composerPrivacyChip = document.querySelector("#composer-privacy-chip");
+const composerRecommendedInput = document.querySelector("#composer-recommended-input");
 const emojiPicker = document.querySelector("#emoji-picker");
 const emojiSearchInput = document.querySelector("#emoji-search-input");
 const emojiGrid = document.querySelector("#emoji-grid");
@@ -2221,10 +2227,13 @@ const renderContent = (content) =>
   escapeHtml(content).replace(/(#[\p{L}\p{N}_-]+)/gu, '<span class="hash-tag">$1</span>');
 
 const getVisiblePosts = () => {
+  const sortedPosts = [...config.posts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   const posts =
     currentFilter === "all"
       ? [...config.posts]
-      : [...config.posts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      : currentFilter === "recommended"
+        ? sortedPosts.filter((post) => Boolean(post.isRecommended))
+        : sortedPosts;
 
   if (!activeFeedHashtag) return posts;
   return posts.filter((post) => getPostHashtags(post.content).includes(activeFeedHashtag));
@@ -2578,6 +2587,7 @@ const readMediaItem = (file) =>
 const updateComposerMeta = () => {
   const scheduleValue = composerScheduleInput?.value || "";
   const isPrivate = privacyButton?.classList.contains("is-active");
+  const isRecommended = Boolean(composerRecommendedInput?.checked);
 
   if (composerScheduleChip) {
     composerScheduleChip.hidden = !scheduleValue;
@@ -2618,6 +2628,7 @@ const ensureEditDraft = (postId) => {
     content: post?.content || "",
     mediaItems: [...(post?.mediaItems || [])],
     visibility: post?.visibility || "public",
+    isRecommended: Boolean(post?.isRecommended),
     scheduledAt: "",
   };
   return editDrafts[postId];
@@ -2636,6 +2647,7 @@ const updateEditDraftUI = (card, postId) => {
   const scheduleChip = card.querySelector(`[data-edit-schedule-chip="${postId}"]`);
   const metaRow = card.querySelector(`[data-edit-meta-row="${postId}"]`);
   const privacyButton = card.querySelector(`[data-edit-action="privacy"][data-post-id="${postId}"]`);
+  const recommendedInput = card.querySelector(`[data-edit-recommended="${postId}"]`);
 
   if (privacyChip) {
     privacyChip.hidden = draft.visibility !== "private";
@@ -2655,6 +2667,10 @@ const updateEditDraftUI = (card, postId) => {
     privacyButton.classList.toggle("is-active", isPrivate);
     privacyButton.dataset.tooltip = isPrivate ? t("privacy_private_post") : t("privacy_public");
     privacyButton.setAttribute("aria-label", isPrivate ? t("privacy_private_post") : t("privacy_public"));
+  }
+
+  if (recommendedInput instanceof HTMLInputElement) {
+    recommendedInput.checked = Boolean(draft.isRecommended);
   }
 };
 
@@ -3047,6 +3063,10 @@ const createPostMarkup = (post) => `
           <span class="composer-meta-chip" data-edit-schedule-chip="${post.id}" hidden></span>
           <span class="composer-meta-chip" data-edit-privacy-chip="${post.id}" hidden>비공개 게시</span>
         </div>
+        <label class="recommend-toggle">
+          <input data-edit-recommended="${post.id}" type="checkbox" ${post.isRecommended ? "checked" : ""} />
+          <span>${t("post_recommended_toggle")}</span>
+        </label>
         <div data-edit-preview-slot="${post.id}">${renderMediaPreviewMarkup(post.mediaItems, post.id)}</div>
         <div class="composer-toolbar tweet-inline-toolbar">
           <div class="composer-icons">
@@ -3228,6 +3248,7 @@ const bindPostActions = () => {
               ...post,
               content: draft.content,
               visibility: draft.visibility,
+              isRecommended: Boolean(draft.isRecommended),
               mediaItems: uploadedMediaItems,
               date: draft.scheduledAt ? draft.scheduledAt.slice(0, 10) : post.date,
             }
@@ -3299,6 +3320,15 @@ const bindPostActions = () => {
         if (card) updateEditDraftUI(card, id);
         if (textarea instanceof HTMLTextAreaElement) textarea.focus();
       }
+    });
+  });
+
+  document.querySelectorAll("[data-edit-recommended]").forEach((input) => {
+    input.addEventListener("change", () => {
+      const id = input.dataset.editRecommended;
+      if (!id || !(input instanceof HTMLInputElement)) return;
+      const draft = ensureEditDraft(id);
+      draft.isRecommended = input.checked;
     });
   });
 
@@ -3438,8 +3468,24 @@ const renderPosts = () => {
   const contentMarkup = !posts.length
     ? `
       <article class="search-result-empty feed-filter-empty">
-        <strong>${currentLanguage === "en" ? "No posts found for this hashtag." : "이 해시태그의 게시물이 아직 없습니다."}</strong>
-        <p>${currentLanguage === "en" ? "Try another hashtag or clear the filter." : "다른 해시태그를 누르거나 필터를 해제해보세요."}</p>
+        <strong>${
+          currentFilter === "recommended"
+            ? currentLanguage === "en"
+              ? "No recommended posts yet."
+              : "추천 게시물이 아직 없습니다."
+            : currentLanguage === "en"
+              ? "No posts found for this hashtag."
+              : "이 해시태그의 게시물이 아직 없습니다."
+        }</strong>
+        <p>${
+          currentFilter === "recommended"
+            ? currentLanguage === "en"
+              ? "Mark a post as recommended to show it here."
+              : "게시물 작성 또는 수정에서 추천 체크를 켜면 여기에 노출됩니다."
+            : currentLanguage === "en"
+              ? "Try another hashtag or clear the filter."
+              : "다른 해시태그를 누르거나 필터를 해제해보세요."
+        }</p>
       </article>
     `
     : currentFilter === "all"
@@ -3970,6 +4016,7 @@ composer?.addEventListener("submit", async (event) => {
   }
 
   const isPrivate = privacyButton?.classList.contains("is-active");
+  const isRecommended = Boolean(composerRecommendedInput?.checked);
   const originalSubmitLabel = composerSubmitButton?.textContent || t("composer_submit");
   if (composerSubmitButton) {
     composerSubmitButton.textContent = t("uploading");
@@ -3997,6 +4044,7 @@ composer?.addEventListener("submit", async (event) => {
         content,
         mediaItems: uploadedMediaItems,
         visibility: isPrivate ? "private" : "public",
+        isRecommended,
         stats: { comments: 0, shares: 0, likes: 0 },
       },
       0
@@ -4012,6 +4060,9 @@ composer?.addEventListener("submit", async (event) => {
   composerMediaInput.accept = "image/*,video/*";
   privacyButton?.classList.remove("is-active");
   privacyButton?.setAttribute("aria-pressed", "false");
+  if (composerRecommendedInput) {
+    composerRecommendedInput.checked = false;
+  }
   closeEmojiPicker();
   renderComposerPreview();
   updateComposerMeta();
