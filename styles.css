@@ -358,7 +358,7 @@ body[data-viewer-role="client"] #about-page-menu {
   top: 0;
   z-index: 60;
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   padding: 0;
   border-radius: 0;
   overflow: hidden;
@@ -578,6 +578,7 @@ body.is-mobile-drawer-open .mobile-drawer {
 
 .timeline-tab {
   position: relative;
+  width: 100%;
   min-height: 74px;
   border-bottom: 1px solid var(--line);
   color: var(--muted);
@@ -4086,7 +4087,7 @@ body.is-mobile-drawer-open .mobile-drawer {
     position: sticky;
     top: 60px;
     z-index: 110;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-top: -1px;
     background: rgba(5, 5, 5, 0.99);
   }
