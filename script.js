@@ -821,11 +821,20 @@ const uploadPendingMediaItems = async (mediaItems = []) => {
   return nextItems;
 };
 
+const normalizeRecommendedValue = (post = {}) => {
+  const value = post?.isRecommended ?? post?.recommended;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on";
+  }
+  return Boolean(value);
+};
+
 const normalizePost = (post, index) => ({
   id: String(post.id || `post-${Date.now()}-${index}`),
   date: String(post.date || new Date().toISOString().slice(0, 10)),
   content: String(post.content || post.body || ""),
-  isRecommended: Boolean(post.isRecommended ?? post.recommended),
+  isRecommended: normalizeRecommendedValue(post),
   mediaItems: normalizeMediaItems(post),
   visibility: String(post.visibility || "public"),
   stats: {
