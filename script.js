@@ -821,21 +821,28 @@ const uploadPendingMediaItems = async (mediaItems = []) => {
   return nextItems;
 };
 
-const normalizeRecommendedValue = (post = {}) => {
+const normalizeRecommendedValue = (post = {}, recommendedIds = null) => {
+  const postId = String(post?.id || "");
+  if (recommendedIds instanceof Set && postId && recommendedIds.has(postId)) {
+    return true;
+  }
   const value = post?.isRecommended ?? post?.recommended ?? post?.is_recommended ?? post?.featured;
   if (typeof value === "string") {
     const normalized = value.trim().toLowerCase();
-    return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on";
+    if (!normalized || ["false", "0", "no", "off", "null", "undefined"].includes(normalized)) {
+      return false;
+    }
+    return true;
   }
   return Boolean(value);
 };
 
-const normalizePost = (post, index) => ({
+const normalizePost = (post, index, recommendedIds = null) => ({
   id: String(post.id || `post-${Date.now()}-${index}`),
   date: String(post.date || new Date().toISOString().slice(0, 10)),
   content: String(post.content || post.body || ""),
-  isRecommended: normalizeRecommendedValue(post),
-  recommended: normalizeRecommendedValue(post),
+  isRecommended: normalizeRecommendedValue(post, recommendedIds),
+  recommended: normalizeRecommendedValue(post, recommendedIds),
   mediaItems: normalizeMediaItems(post),
   visibility: String(post.visibility || "public"),
   stats: {
@@ -857,6 +864,9 @@ const buildConfig = (parsed = {}, localOverrides = {}) => {
   const currentClientId = getClientSessionId();
   const base = cloneDefault();
   const rawConversations = localOverrides.conversations ?? parsed.conversations;
+  const recommendedIds = new Set(
+    Array.isArray(parsed.recommended_post_ids) ? parsed.recommended_post_ids.map((id) => String(id || "")) : []
+  );
   const next = {
     ...base,
     ...parsed,
@@ -864,8 +874,8 @@ const buildConfig = (parsed = {}, localOverrides = {}) => {
     client_id: currentClientId,
     client_name: String(localOverrides.client_name || parsed.client_name || base.client_name),
     posts: Array.isArray(parsed.posts) && parsed.posts.length
-      ? parsed.posts.map(normalizePost)
-      : base.posts.map(normalizePost),
+      ? parsed.posts.map((post, index) => normalizePost(post, index, recommendedIds))
+      : base.posts.map((post, index) => normalizePost(post, index, recommendedIds)),
     conversations: Array.isArray(rawConversations)
       ? rawConversations.map((conversation, index) =>
           normalizeConversation(conversation, index, {
@@ -911,6 +921,12 @@ const buildConfig = (parsed = {}, localOverrides = {}) => {
   }
   return next;
 };
+
+const getRecommendedPostIds = (source = config) =>
+  (Array.isArray(source.posts) ? source.posts : [])
+    .filter((post) => normalizeRecommendedValue(post))
+    .map((post) => String(post.id || ""))
+    .filter(Boolean);
 
 const loadConfig = () => {
   try {
@@ -1126,7 +1142,10 @@ const getSharedConfigPayload = (source = config) => {
   void client_id;
   void client_name;
   void conversations;
-  return shared;
+  return {
+    ...shared,
+    recommended_post_ids: getRecommendedPostIds(source),
+  };
 };
 
 const cacheConfigLocally = (updatedAt = new Date().toISOString()) => {
@@ -2242,7 +2261,7 @@ const getVisiblePosts = () => {
     currentFilter === "all"
       ? [...config.posts]
       : currentFilter === "recommended"
-        ? sortedPosts.filter((post) => normalizeRecommendedValue(post))
+        ? sortedPosts.filter((post) => normalizeRecommendedValue(post, new Set(config.recommended_post_ids || [])))
         : sortedPosts;
 
   if (!activeFeedHashtag) return posts;
@@ -2638,7 +2657,7 @@ const ensureEditDraft = (postId) => {
     content: post?.content || "",
     mediaItems: [...(post?.mediaItems || [])],
     visibility: post?.visibility || "public",
-    isRecommended: normalizeRecommendedValue(post),
+    isRecommended: normalizeRecommendedValue(post, new Set(config.recommended_post_ids || [])),
     scheduledAt: "",
   };
   return editDrafts[postId];
@@ -3074,7 +3093,7 @@ const createPostMarkup = (post) => `
           <span class="composer-meta-chip" data-edit-privacy-chip="${post.id}" hidden>비공개 게시</span>
         </div>
         <label class="recommend-toggle">
-          <input data-edit-recommended="${post.id}" type="checkbox" ${normalizeRecommendedValue(post) ? "checked" : ""} />
+          <input data-edit-recommended="${post.id}" type="checkbox" ${normalizeRecommendedValue(post, new Set(config.recommended_post_ids || [])) ? "checked" : ""} />
           <span>${t("post_recommended_toggle")}</span>
         </label>
         <div data-edit-preview-slot="${post.id}">${renderMediaPreviewMarkup(post.mediaItems, post.id)}</div>
