@@ -9,6 +9,12 @@ const getAuthorizationToken = (req) => {
   return header.slice(7).trim();
 };
 
+const isAdminPasswordRequest = (req) => {
+  const expectedPassword = String(process.env.MONOMATE_ADMIN_PASSWORD || "").trim();
+  const providedPassword = String(req.headers["x-admin-password"] || "").trim();
+  return Boolean(expectedPassword && providedPassword && providedPassword === expectedPassword);
+};
+
 module.exports = async (req, res) => {
   try {
     if (req.method === "GET") {
@@ -26,7 +32,7 @@ module.exports = async (req, res) => {
 
     if (req.method === "POST") {
       const token = getAuthorizationToken(req);
-      if (!verifyAdminToken(token)) {
+      if (!verifyAdminToken(token) && !isAdminPasswordRequest(req)) {
         res.status(401).json({ error: "UNAUTHORIZED" });
         return;
       }
