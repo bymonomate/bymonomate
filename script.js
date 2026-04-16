@@ -2241,7 +2241,7 @@ const getVisiblePosts = () => {
     currentFilter === "all"
       ? [...config.posts]
       : currentFilter === "recommended"
-        ? sortedPosts.filter((post) => Boolean(post.isRecommended))
+        ? sortedPosts.filter((post) => normalizeRecommendedValue(post))
         : sortedPosts;
 
   if (!activeFeedHashtag) return posts;
@@ -2637,7 +2637,7 @@ const ensureEditDraft = (postId) => {
     content: post?.content || "",
     mediaItems: [...(post?.mediaItems || [])],
     visibility: post?.visibility || "public",
-    isRecommended: Boolean(post?.isRecommended),
+    isRecommended: normalizeRecommendedValue(post),
     scheduledAt: "",
   };
   return editDrafts[postId];
