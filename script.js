@@ -1178,13 +1178,13 @@ const fetchRemoteState = async ({ silent = false } = {}) => {
     const localUpdatedMs = Date.parse(localStateUpdatedAt);
     if (hasRemoteContent) {
       if (
+        isAdminViewer() &&
+        isAdminAuthenticated() &&
         Number.isFinite(remoteUpdatedMs) &&
         Number.isFinite(localUpdatedMs) &&
         remoteUpdatedMs < localUpdatedMs
       ) {
-        if (isAdminViewer() && isAdminAuthenticated()) {
-          scheduleRemoteSave();
-        }
+        scheduleRemoteSave();
         return;
       }
       applyRemoteState(payload.state, remoteUpdatedAt);
