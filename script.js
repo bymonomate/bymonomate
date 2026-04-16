@@ -1143,8 +1143,17 @@ const getSharedConfigPayload = (source = config) => {
   void client_id;
   void client_name;
   void conversations;
+  const recommendedIds = new Set(
+    Array.isArray(source.recommended_post_ids) ? source.recommended_post_ids.map((id) => String(id || "")) : []
+  );
   return {
     ...shared,
+    posts: (Array.isArray(source.posts) ? source.posts : []).map((post, index) => ({
+      ...post,
+      ...normalizePost(post, index, recommendedIds),
+      isRecommended: normalizeRecommendedValue(post, recommendedIds),
+      recommended: normalizeRecommendedValue(post, recommendedIds),
+    })),
     recommended_post_ids: getRecommendedPostIds(source),
   };
 };
