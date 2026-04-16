@@ -822,7 +822,7 @@ const uploadPendingMediaItems = async (mediaItems = []) => {
 };
 
 const normalizeRecommendedValue = (post = {}) => {
-  const value = post?.isRecommended ?? post?.recommended;
+  const value = post?.isRecommended ?? post?.recommended ?? post?.is_recommended ?? post?.featured;
   if (typeof value === "string") {
     const normalized = value.trim().toLowerCase();
     return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on";
@@ -835,6 +835,7 @@ const normalizePost = (post, index) => ({
   date: String(post.date || new Date().toISOString().slice(0, 10)),
   content: String(post.content || post.body || ""),
   isRecommended: normalizeRecommendedValue(post),
+  recommended: normalizeRecommendedValue(post),
   mediaItems: normalizeMediaItems(post),
   visibility: String(post.visibility || "public"),
   stats: {
@@ -3073,7 +3074,7 @@ const createPostMarkup = (post) => `
           <span class="composer-meta-chip" data-edit-privacy-chip="${post.id}" hidden>비공개 게시</span>
         </div>
         <label class="recommend-toggle">
-          <input data-edit-recommended="${post.id}" type="checkbox" ${post.isRecommended ? "checked" : ""} />
+          <input data-edit-recommended="${post.id}" type="checkbox" ${normalizeRecommendedValue(post) ? "checked" : ""} />
           <span>${t("post_recommended_toggle")}</span>
         </label>
         <div data-edit-preview-slot="${post.id}">${renderMediaPreviewMarkup(post.mediaItems, post.id)}</div>
@@ -3258,6 +3259,7 @@ const bindPostActions = () => {
               content: draft.content,
               visibility: draft.visibility,
               isRecommended: Boolean(draft.isRecommended),
+              recommended: Boolean(draft.isRecommended),
               mediaItems: uploadedMediaItems,
               date: draft.scheduledAt ? draft.scheduledAt.slice(0, 10) : post.date,
             }
@@ -4054,6 +4056,7 @@ composer?.addEventListener("submit", async (event) => {
         mediaItems: uploadedMediaItems,
         visibility: isPrivate ? "private" : "public",
         isRecommended,
+        recommended: isRecommended,
         stats: { comments: 0, shares: 0, likes: 0 },
       },
       0
