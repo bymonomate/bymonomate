@@ -2,6 +2,7 @@ const STORAGE_KEY = "monomate-admin-config";
 const LOCAL_STATE_UPDATED_KEY = "monomate-local-state-updated-at";
 const CLIENT_SESSION_KEY = "monomate-client-session-id";
 const ADMIN_SESSION_KEY = "monomate-admin-authenticated";
+const ADMIN_PASSWORD_SESSION_KEY = "monomate-admin-password";
 const API_SITE_STATE_ENDPOINT = "/api/site-state";
 const API_ADMIN_AUTH_ENDPOINT = "/api/admin-auth";
 const API_INQUIRIES_ENDPOINT = "/api/inquiries";
@@ -1162,6 +1163,14 @@ const getAdminAuthToken = () => {
   }
 };
 
+const getAdminPasswordSessionValue = () => {
+  try {
+    return sessionStorage.getItem(ADMIN_PASSWORD_SESSION_KEY) || "";
+  } catch (error) {
+    return "";
+  }
+};
+
 const applyRemoteState = (state, updatedAt = "") => {
   if (!state || typeof state !== "object") return;
   isHydratingFromRemote = true;
@@ -1224,6 +1233,7 @@ const persistRemoteState = async () => {
   if (!isAdminViewer() || !isAdminAuthenticated() || isHydratingFromRemote) return false;
   try {
     const token = getAdminAuthToken();
+    const adminPassword = getAdminPasswordSessionValue();
     if (!token) return false;
     const response = await fetch(API_SITE_STATE_ENDPOINT, {
       method: "POST",
@@ -1231,6 +1241,7 @@ const persistRemoteState = async () => {
         "Content-Type": "application/json",
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
+        ...(adminPassword ? { "X-Admin-Password": adminPassword } : {}),
       },
       body: JSON.stringify({ state: getSharedConfigPayload(config) }),
     });
@@ -2965,6 +2976,19 @@ const setAdminAuthenticated = (value) => {
       sessionStorage.setItem(ADMIN_SESSION_KEY, value.trim());
     } else {
       sessionStorage.removeItem(ADMIN_SESSION_KEY);
+      sessionStorage.removeItem(ADMIN_PASSWORD_SESSION_KEY);
+    }
+  } catch (error) {
+    void error;
+  }
+};
+
+const setAdminPasswordSessionValue = (value) => {
+  try {
+    if (typeof value === "string" && value.trim()) {
+      sessionStorage.setItem(ADMIN_PASSWORD_SESSION_KEY, value.trim());
+    } else {
+      sessionStorage.removeItem(ADMIN_PASSWORD_SESSION_KEY);
     }
   } catch (error) {
     void error;
@@ -4253,6 +4277,7 @@ adminAuthForm?.addEventListener("submit", async (event) => {
       throw new Error(String(payload?.error || "AUTH_FAILED"));
     }
     setAdminAuthenticated(String(payload.token));
+    setAdminPasswordSessionValue(password);
     closeAdminModal();
     setViewerRole("admin");
   } catch (error) {
