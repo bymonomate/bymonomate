@@ -1243,13 +1243,13 @@ const persistRemoteState = async () => {
   try {
     const token = getAdminAuthToken();
     const adminPassword = getAdminPasswordSessionValue();
-    if (!token) return false;
+    if (!token && !adminPassword) return false;
     const response = await fetch(API_SITE_STATE_ENDPOINT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(adminPassword ? { "X-Admin-Password": adminPassword } : {}),
       },
       body: JSON.stringify({ state: getSharedConfigPayload(config) }),
@@ -2976,7 +2976,7 @@ const buildInquiryMailto = () => {
 const hasAdminPassword = () => true;
 
 const isAdminAuthenticated = () => {
-  return Boolean(getAdminAuthToken());
+  return Boolean(getAdminAuthToken() || getAdminPasswordSessionValue());
 };
 
 const setAdminAuthenticated = (value) => {
