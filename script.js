@@ -2,6 +2,7 @@ const STORAGE_KEY = "monomate-admin-config";
 const LOCAL_STATE_UPDATED_KEY = "monomate-local-state-updated-at";
 const CLIENT_SESSION_KEY = "monomate-client-session-id";
 const ADMIN_SESSION_KEY = "monomate-admin-authenticated";
+const ADMIN_TOKEN_STORAGE_KEY = "monomate-admin-authenticated-persist";
 const ADMIN_PASSWORD_SESSION_KEY = "monomate-admin-password";
 const ADMIN_PASSWORD_STORAGE_KEY = "monomate-admin-password-persist";
 const API_SITE_STATE_ENDPOINT = "/api/site-state";
@@ -1167,7 +1168,11 @@ const cacheConfigLocally = (updatedAt = new Date().toISOString()) => {
 
 const getAdminAuthToken = () => {
   try {
-    return sessionStorage.getItem(ADMIN_SESSION_KEY) || "";
+    return (
+      sessionStorage.getItem(ADMIN_SESSION_KEY) ||
+      localStorage.getItem(ADMIN_TOKEN_STORAGE_KEY) ||
+      ""
+    );
   } catch (error) {
     return "";
   }
@@ -2988,8 +2993,10 @@ const setAdminAuthenticated = (value) => {
   try {
     if (typeof value === "string" && value.trim()) {
       sessionStorage.setItem(ADMIN_SESSION_KEY, value.trim());
+      localStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, value.trim());
     } else {
       sessionStorage.removeItem(ADMIN_SESSION_KEY);
+      localStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
       sessionStorage.removeItem(ADMIN_PASSWORD_SESSION_KEY);
       localStorage.removeItem(ADMIN_PASSWORD_STORAGE_KEY);
     }
@@ -4297,6 +4304,7 @@ adminAuthForm?.addEventListener("submit", async (event) => {
     setAdminPasswordSessionValue(password);
     closeAdminModal();
     setViewerRole("admin");
+    void persistRemoteState();
   } catch (error) {
     if (adminModalError) {
       adminModalError.hidden = false;
