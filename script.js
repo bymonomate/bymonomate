@@ -628,9 +628,9 @@ const setLocalStateUpdatedAt = (value) => {
 const getStoredLanguage = () => {
   try {
     const stored = localStorage.getItem(LANGUAGE_KEY);
-    return stored === "en" ? "en" : "ko";
+    return stored === "ko" ? "ko" : "en";
   } catch (error) {
-    return "ko";
+    return "en";
   }
 };
 
