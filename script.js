@@ -956,7 +956,7 @@ let isHydratingFromRemote = false;
 if (!String(config.services_title || "").trim()) {
   config.services_title = DEFAULT_CONFIG.services_title;
 }
-let currentFilter = "recommended";
+let currentFilter = "latest";
 let activeFeedHashtag = "";
 let activeView = "home";
 let activeSettingsPanel = "account";
@@ -2208,9 +2208,9 @@ const submitInquiryToNetlify = async (conversation, message) => {
 
 const openPostFromSearch = (postId) => {
   activeFeedHashtag = "";
-  currentFilter = "recommended";
+  currentFilter = "latest";
   document.querySelectorAll("[data-filter]").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.filter === "recommended");
+    button.classList.toggle("is-active", button.dataset.filter === "latest");
   });
   setActiveView("home");
   renderPosts();
@@ -2307,9 +2307,9 @@ const syncFeedHashtagButtons = () => {
 
 const setFeedHashtagFilter = (keyword = "") => {
   activeFeedHashtag = normalizeHashtagTerm(keyword);
-  currentFilter = "recommended";
+  currentFilter = "latest";
   document.querySelectorAll("[data-filter]").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.filter === "recommended");
+    button.classList.toggle("is-active", button.dataset.filter === "latest");
   });
   setActiveView("home");
   renderPosts();
