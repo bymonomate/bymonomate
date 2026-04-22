@@ -4436,10 +4436,16 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
+const initializeApp = async () => {
+  document.body.classList.add("is-booting");
+  if (config.viewer_role === "admin" && !isAdminAuthenticated()) {
+    config.viewer_role = "client";
+  }
+  setViewerRole(config.viewer_role || "client");
+  await fetchRemoteState({ silent: true });
+  startRemoteSync();
+  document.body.classList.remove("is-booting");
+};
+
 bindAboutServices();
-if (config.viewer_role === "admin" && !isAdminAuthenticated()) {
-  config.viewer_role = "client";
-}
-setViewerRole(config.viewer_role || "client");
-void fetchRemoteState();
-startRemoteSync();
+void initializeApp();

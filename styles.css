@@ -44,6 +44,14 @@ body.is-mobile-drawer-open {
   overflow: hidden;
 }
 
+body.is-booting .app-shell,
+body.is-booting .mobile-bottom-nav,
+body.is-booting .mobile-drawer,
+body.is-booting .mobile-drawer-backdrop {
+  opacity: 0;
+  visibility: hidden;
+}
+
 a,
 button,
 input,
